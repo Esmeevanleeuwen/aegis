@@ -1,13 +1,13 @@
 :root {
-  --paper: #f2efe8;
-  --paper-light: #faf8f3;
-  --ink: #171614;
-  --muted: #625e57;
-  --line: #bdb7ad;
-  --soft-line: #dcd6cc;
-  --red: #922331;
-  --red-dark: #701925;
-  --red-soft: #ead5d7;
+  --paper: #ffffff;
+  --paper-light: #f6f6f6;
+  --ink: #0d0d0d;
+  --muted: #585858;
+  --line: #cfcfcf;
+  --soft-line: #e8e8e8;
+  --red: #a20f2f;
+  --red-dark: #76001d;
+  --red-soft: #f5e6ea;
   --blue: #234d72;
   --green: #2f6650;
   --max: 1500px;
@@ -65,7 +65,7 @@ a {
 
 .site-header {
   align-items: center;
-  background: rgba(245, 243, 238, 0.96);
+  background: rgba(255, 255, 255, 0.97);
   border-bottom: 1px solid var(--line);
   display: flex;
   height: 76px;
@@ -1093,7 +1093,7 @@ h3 {
 }
 
 .local-map path {
-  fill: #e8e4dc;
+  fill: #f4f4f4;
   stroke: var(--ink);
   stroke-width: 1.5;
 }
@@ -1239,7 +1239,7 @@ h3 {
 
 .document-reader {
   padding: clamp(72px, 9vw, 132px) clamp(20px, 4vw, 56px);
-  background: #ecece8;
+  background: #f3f3f3;
   border-top: 1px solid var(--line);
   scroll-margin-top: 92px;
 }
@@ -1432,7 +1432,7 @@ h3 {
 .document-reader__pages {
   min-width: 0;
   padding: clamp(28px, 5vw, 72px);
-  background: #deded9;
+  background: #e9e9e9;
 }
 
 .document-reader__page {
@@ -1721,7 +1721,8 @@ h3 {
 /* Editorial system — September 2026 */
 
 body {
-  background-image: linear-gradient(90deg, transparent 0, transparent calc(100% - 1px), rgba(23, 22, 20, 0.025) calc(100% - 1px));
+  background: #ffffff;
+  background-image: none;
   color: var(--ink);
 }
 
@@ -1749,7 +1750,8 @@ h3 {
 }
 
 .site-header {
-  height: 66px;
+  border-bottom-color: var(--ink);
+  height: 68px;
   padding-inline: clamp(20px, 3vw, 46px);
 }
 
@@ -1802,7 +1804,8 @@ h3 {
 }
 
 .home-brand {
-  padding: clamp(34px, 5vw, 66px) clamp(24px, 4vw, 64px) 34px;
+  background: #ffffff;
+  padding: clamp(30px, 4vw, 54px) clamp(24px, 4vw, 64px) 28px;
 }
 
 .home-brand__rail,
@@ -1832,7 +1835,7 @@ h3 {
 
 .home-brand__lockup {
   align-items: end;
-  border-bottom-width: 3px;
+  border-bottom-width: 4px;
   display: grid;
   gap: 36px;
   grid-template-columns: minmax(0, 1fr) minmax(210px, 0.32fr);
@@ -1850,9 +1853,9 @@ h3 {
 }
 
 .home-brand__lockup .brand__word {
-  font-size: clamp(3.4rem, 10.3vw, 9.7rem);
-  font-weight: 400;
-  letter-spacing: 0.28em;
+  font-size: clamp(3.2rem, 8.8vw, 8.3rem);
+  font-weight: 500;
+  letter-spacing: 0.3em;
 }
 
 .home-brand__lockup > p {
@@ -1863,12 +1866,14 @@ h3 {
 }
 
 .foundation {
-  grid-template-columns: minmax(0, 1.58fr) minmax(340px, 0.72fr);
-  min-height: 540px;
+  background: #ffffff;
+  border-bottom-color: var(--ink);
+  grid-template-columns: minmax(0, 1.66fr) minmax(340px, 0.64fr);
+  min-height: 500px;
 }
 
 .foundation .photo {
-  min-height: 540px;
+  min-height: 500px;
 }
 
 .foundation__copy {
@@ -1876,8 +1881,9 @@ h3 {
 }
 
 .foundation__copy h1 {
-  font-size: clamp(3rem, 4.6vw, 5.4rem);
-  max-width: 10ch;
+  font-size: clamp(2.65rem, 3.8vw, 4.4rem);
+  font-weight: 600;
+  max-width: 11ch;
 }
 
 .foundation__copy > p:not(.eyebrow) {
@@ -1935,12 +1941,14 @@ h3 {
 }
 
 .choice-grid a {
-  font-size: clamp(1rem, 1.3vw, 1.2rem);
-  min-height: 92px;
+  font-size: clamp(0.95rem, 1.2vw, 1.12rem);
+  font-weight: 500;
+  min-height: 82px;
 }
 
 .system-line {
-  padding: clamp(72px, 8vw, 112px) clamp(24px, 4vw, 64px);
+  background: #ffffff;
+  padding: clamp(64px, 7vw, 96px) clamp(24px, 4vw, 64px);
 }
 
 .section-kicker .eyebrow {
@@ -1948,7 +1956,7 @@ h3 {
 }
 
 .system-line__photo {
-  min-height: 510px;
+  min-height: 460px;
 }
 
 .system-line__intro {
@@ -1958,7 +1966,8 @@ h3 {
 }
 
 .system-line__intro h2 {
-  font-size: clamp(2.8rem, 4.3vw, 5rem);
+  font-size: clamp(2.5rem, 3.7vw, 4.3rem);
+  font-weight: 600;
 }
 
 .system-line__intro p {
@@ -1986,6 +1995,7 @@ h3 {
 }
 
 .current-dossiers {
+  background: #ffffff;
   padding-block: clamp(74px, 8vw, 112px);
 }
 
@@ -1995,7 +2005,8 @@ h3 {
 }
 
 .section-title {
-  font-size: clamp(2.9rem, 5vw, 5.8rem);
+  font-size: clamp(2.7rem, 4.3vw, 5rem);
+  font-weight: 600;
 }
 
 .dossier-showcase {
@@ -2004,29 +2015,41 @@ h3 {
 }
 
 .dossier-feature {
-  background: var(--red-soft);
+  background: var(--red);
   border-right: 1px solid var(--line);
   display: flex;
   flex-direction: column;
   min-height: 480px;
   padding: clamp(34px, 5vw, 70px);
+  color: #ffffff;
   transition: background-color 180ms ease, color 180ms ease;
 }
 
 .dossier-feature:hover,
 .dossier-feature:focus-visible {
-  background: var(--red);
+  background: var(--red-dark);
   color: white;
 }
 
 .dossier-feature h3 {
-  font-size: clamp(3rem, 5.5vw, 6.4rem);
+  font-size: clamp(2.8rem, 4.8vw, 5.6rem);
+  font-weight: 600;
   margin: auto 0 24px;
   max-width: 8ch;
 }
 
 .dossier-feature p {
+  color: rgba(255, 255, 255, 0.78);
   max-width: 44ch;
+}
+
+.dossier-feature .dossier-card__number,
+.dossier-feature .dossier-card__meta {
+  color: #ffffff;
+}
+
+.dossier-feature .dossier-card__meta {
+  border-top-color: rgba(255, 255, 255, 0.45);
 }
 
 .dossier-card__meta {
@@ -2087,12 +2110,14 @@ h3 {
 }
 
 .political-route__content {
+  background: #ffffff;
   border-left: 1px solid var(--line);
   padding: clamp(52px, 6vw, 90px);
 }
 
 .political-route__content h2 {
-  font-size: clamp(3rem, 5vw, 5.8rem);
+  font-size: clamp(2.7rem, 4.2vw, 4.9rem);
+  font-weight: 600;
   max-width: 10ch;
 }
 
@@ -2143,11 +2168,13 @@ h3 {
 }
 
 .home-commons__content {
+  background: #ffffff;
   padding: clamp(54px, 7vw, 104px) clamp(28px, 5vw, 76px);
 }
 
 .home-commons__content h2 {
-  font-size: clamp(3rem, 5vw, 5.8rem);
+  font-size: clamp(2.7rem, 4.2vw, 4.9rem);
+  font-weight: 600;
   max-width: 10ch;
 }
 
@@ -2184,9 +2211,9 @@ h3 {
 .home-commons__map {
   align-items: center;
   background:
-    linear-gradient(rgba(146, 35, 49, 0.055) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(146, 35, 49, 0.055) 1px, transparent 1px),
-    var(--red-soft);
+    linear-gradient(rgba(13, 13, 13, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(13, 13, 13, 0.045) 1px, transparent 1px),
+    #f5f5f5;
   background-size: 42px 42px;
   border-left: 1px solid var(--line);
   display: flex;
@@ -2415,7 +2442,7 @@ h3 {
 }
 
 .local-tabs {
-  background: rgba(242, 239, 232, 0.96);
+  background: rgba(255, 255, 255, 0.97);
   padding-inline: clamp(18px, 4vw, 64px);
   position: sticky;
   scrollbar-width: thin;
@@ -2534,7 +2561,7 @@ h3 {
 }
 
 .document-reader {
-  background: #e7e3dc;
+  background: #f3f3f3;
   padding-inline: clamp(20px, 4vw, 58px);
 }
 
@@ -2595,7 +2622,7 @@ h3 {
 }
 
 .document-reader__pages {
-  background: #d9d4cc;
+  background: #e9e9e9;
 }
 
 .document-reader__page {
