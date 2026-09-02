@@ -95,14 +95,18 @@ const SYSTEM_TOPICS = [
 ];
 
 function parseArguments(argv) {
-  const values = { dryRun: false, publishSystem: false };
+  const values = { dryRun: false, publishSystem: false, publishAll: false };
 
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index];
     if (argument === "--dry-run") values.dryRun = true;
     else if (argument === "--publish-system") values.publishSystem = true;
+    else if (argument === "--publish-all") values.publishAll = true;
     else if (argument === "--system-pdf") values.systemPdf = argv[++index];
     else if (argument === "--public-data-pdf") values.publicDataPdf = argv[++index];
+    else if (argument === "--crime-system-pdf") values.crimeSystemPdf = argv[++index];
+    else if (argument === "--wwii-system-pdf") values.wwiiSystemPdf = argv[++index];
+    else if (argument === "--gelderland-network-pdf") values.gelderlandNetworkPdf = argv[++index];
     else if (argument === "--help") values.help = true;
     else throw new Error(`Onbekend argument: ${argument}`);
   }
@@ -112,11 +116,19 @@ function parseArguments(argv) {
 
 function usage() {
   return `Gebruik:
-  npm run content:import -- --system-pdf <bestand.pdf> --public-data-pdf <bestand.pdf>
+  npm run content:import -- [documentopties]
+
+Documentopties:
+  --system-pdf <bestand.pdf>
+  --public-data-pdf <bestand.pdf>
+  --crime-system-pdf <bestand.pdf>
+  --wwii-system-pdf <bestand.pdf>
+  --gelderland-network-pdf <bestand.pdf>
 
 Opties:
   --dry-run          Alleen lezen en aantallen tonen; niets opslaan.
   --publish-system   Publiceer de systeemhoofdstukken direct. Gebruik dit pas na redactie.
+  --publish-all      Publiceer alle opgegeven Aegis-dossiers en brondocumenten.
 
 Benodigde omgevingsvariabelen voor echte import:
   NEXT_PUBLIC_SUPABASE_URL
@@ -159,38 +171,180 @@ function fileChecksum(pages) {
     .digest("hex");
 }
 
+function slugify(value) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 96);
+}
+
+function extractTableOfContents(pages, tocLocations) {
+  const seen = new Map();
+  const entries = [];
+
+  for (const location of tocLocations) {
+    const pageNumber = typeof location === "number" ? location : location.pageNumber;
+    const pageOffset = typeof location === "number" ? 0 : location.pageOffset;
+    const page = pages.find((candidate) => candidate.pageNumber === pageNumber);
+    if (!page) continue;
+    let pendingTitle = "";
+    let pendingIndentation = "";
+
+    for (const line of page.text.replace(/[\u200b\u200c\u200d\ufeff]/g, "").split("\n")) {
+      let match = line.match(/^(\s*)(.+?)\s+(\d+)\s*$/);
+      const pageOnlyMatch = line.match(/^\s*(\d+)\s*$/);
+
+      if (!match && pageOnlyMatch && pendingTitle) {
+        const targetPage = Number.parseInt(pageOnlyMatch[1], 10) + pageOffset;
+        if (targetPage >= 1 && targetPage <= pages.length) {
+          match = [line, pendingIndentation, pendingTitle, pageOnlyMatch[1]];
+          pendingTitle = "";
+          pendingIndentation = "";
+        }
+      }
+
+      if (!match) {
+        const continuation = line.trim().replace(/\s+/g, " ");
+        if (continuation && !/^\d+$/.test(continuation)) {
+          if (!pendingTitle) pendingIndentation = line.match(/^\s*/)?.[0] ?? "";
+          pendingTitle = `${pendingTitle} ${continuation}`.trim();
+        }
+        continue;
+      }
+
+      const [, indentation, rawTitle, rawPage] = match;
+      const title = `${pendingTitle} ${rawTitle}`.trim().replace(/\s+/g, " ");
+      const targetPage = Number.parseInt(rawPage, 10) + pageOffset;
+      pendingTitle = "";
+      pendingIndentation = "";
+      if (!title || /^\d+$/.test(title) || targetPage < 1 || targetPage > pages.length) continue;
+
+      const baseKey = slugify(title) || `pagina-${targetPage}`;
+      const occurrence = (seen.get(baseKey) ?? 0) + 1;
+      seen.set(baseKey, occurrence);
+      entries.push({
+        stableKey: occurrence === 1 ? baseKey : `${baseKey}-${occurrence}`,
+        title,
+        pageNumber: targetPage,
+        level: Math.min(3, Math.floor(indentation.length / 4)),
+        position: entries.length,
+      });
+    }
+  }
+
+  return entries;
+}
+
 function buildPlan(options) {
   const documents = [];
 
-  if (options.systemPdf) {
-    const path = ensureReadable(options.systemPdf);
+  function addDocument(filePath, configuration) {
+    if (!filePath) return;
+    const path = ensureReadable(filePath);
     const pages = extractPages(path);
     documents.push({
-      key: "system",
-      slug: "overkoepelend-dossier-systeeminrichting",
-      title: "Overkoepelend dossier systeeminrichting",
-      description: "Brondossier over geblokkeerde uitstroom, wachttijd en verplaatsing van systeemdruk.",
+      ...configuration,
+      ownerPlatform: "aegis",
       path,
       pages,
       checksum: fileChecksum(pages),
-      topics: SYSTEM_TOPICS,
+      topics: configuration.topics ?? [],
+      sections: extractTableOfContents(pages, configuration.tocLocations ?? []),
     });
   }
 
-  if (options.publicDataPdf) {
-    const path = ensureReadable(options.publicDataPdf);
-    const pages = extractPages(path);
-    documents.push({
-      key: "public-data",
+  addDocument(options.systemPdf, {
+    key: "system",
+    slug: "overkoepelend-dossier-systeeminrichting",
+    title: "Overkoepelend dossier systeeminrichting",
+    description: "Brondossier over geblokkeerde uitstroom, wachttijd en verplaatsing van systeemdruk.",
+    dossier: {
+      slug: "de-uitgang-is-vol",
+      title: "De uitgang is vol",
+      summary: "Waarom systemen vastlopen wanneer mensen nergens duurzaam naartoe kunnen.",
+      eyebrow: "Dossier · wonen en zorg",
+      subtitle: "Woningtekorten blokkeren zorg, veiligheid en zelfstandigheid.",
+      themes: ["Wonen", "Zorg", "Bestuur", "Veiligheid"],
+      featured: true,
+    },
+    topics: SYSTEM_TOPICS,
+    tocLocations: [2, 3, 4],
+  });
+
+  addDocument(options.publicDataPdf, {
+    key: "public-data",
+    slug: "datum-publiek",
+    title: "Datum publiek",
+    description: "Register met publieke datums, bekende feiten, juridische status en open vragen.",
+    dossier: {
       slug: "datum-publiek",
       title: "Datum publiek",
-      description: "Bronregister met gebeurtenissen, publicatiemomenten, processtatus en open vragen.",
-      path,
-      pages,
-      checksum: fileChecksum(pages),
-      topics: [],
-    });
-  }
+      summary: "Een openbaar zakenregister waarin bekende feiten, juridische gevolgen en ontbrekende informatie gescheiden blijven.",
+      eyebrow: "Dossier · publiek register",
+      subtitle: "Per zaak blijft zichtbaar wat bekend is, wat juridisch volgde en wat nog onduidelijk is.",
+      themes: ["Recht", "Veiligheid", "Bewijs"],
+      featured: false,
+    },
+    tocLocations: [],
+  });
+
+  addDocument(options.crimeSystemPdf, {
+    key: "crime-system",
+    slug: "criminaliteit-als-systeem",
+    title: "Criminaliteit als systeem",
+    description: "Overkoepelende analyse van ontstaan, selectie, escalatie en institutionele verwerking.",
+    dossier: {
+      slug: "criminaliteit-als-systeem",
+      title: "Criminaliteit als systeem",
+      summary: "Hoe gedrag, zichtbaarheid, classificatie, capaciteit en strafrechtelijke verwerking één systeem vormen.",
+      eyebrow: "Dossier · criminaliteit en instituties",
+      subtitle: "Criminaliteit ontstaat, wordt geselecteerd en keert soms terug door dezelfde institutionele ketens.",
+      themes: ["Criminaliteit", "Recht", "Zorg", "Veiligheid"],
+      featured: true,
+    },
+    tocLocations: [2, 3],
+  });
+
+  addDocument(options.wwiiSystemPdf, {
+    key: "wwii-system",
+    slug: "de-tweede-wereldoorlog-als-systeem",
+    title: "De Tweede Wereldoorlog als systeem",
+    description: "Overkoepelende analyse van territorium, macht, informatie en vernietiging.",
+    dossier: {
+      slug: "de-tweede-wereldoorlog-als-systeem",
+      title: "De Tweede Wereldoorlog als systeem",
+      summary: "Hoe territorium, economie, ideologie, logistiek en informatie samen één wereldwijd oorlogssysteem vormden.",
+      eyebrow: "Dossier · geschiedenis en macht",
+      subtitle: "De oorlog als samenhangend systeem van territorium, infrastructuur, bestuur en vernietiging.",
+      themes: ["Geschiedenis", "Oorlog", "Macht", "Infrastructuur"],
+      featured: false,
+    },
+    tocLocations: [2],
+  });
+
+  addDocument(options.gelderlandNetworkPdf, {
+    key: "gelderland-network",
+    slug: "organisatorische-netwerklaag-gelderland",
+    title: "De organisatorische netwerklaag van Gelderland",
+    description: "Analyse van organisaties, gemeenten, infrastructuur, informatie en afhankelijkheidsketens in Gelderland.",
+    dossier: {
+      slug: "organisatorische-netwerklaag-gelderland",
+      title: "De organisatorische netwerklaag van Gelderland",
+      summary: "Hoe formele grenzen en werkelijke afhankelijkheden samen de handelingsruimte van Gelderland vormen.",
+      eyebrow: "Dossier · Gelderland en bestuur",
+      subtitle: "Van gemeentelijke overlap naar organisaties, capaciteit, geld, informatie en fysieke mogelijkheid.",
+      themes: ["Gelderland", "Bestuur", "Netwerken", "Infrastructuur"],
+      featured: true,
+    },
+    tocLocations: [
+      { pageNumber: 5, pageOffset: 1 },
+      { pageNumber: 54, pageOffset: 54 },
+      { pageNumber: 87, pageOffset: 85 },
+    ],
+  });
 
   if (!documents.length) throw new Error("Geef minstens één PDF-pad op.\n\n" + usage());
   return documents;
@@ -207,6 +361,7 @@ async function upsertKnowledgeObject(supabase, values) {
 }
 
 async function importDocument(supabase, document, options) {
+  const shouldPublish = options.publishAll || (document.key === "system" && options.publishSystem);
   const { data: sourceDocument, error: documentError } = await supabase
     .from("source_documents")
     .upsert(
@@ -216,8 +371,14 @@ async function importDocument(supabase, document, options) {
         description: document.description,
         file_name: basename(document.path),
         checksum: document.checksum,
-        access_level: "internal",
-        metadata: { importer: "aegis-pdf-v1", page_count: document.pages.length },
+        access_level: shouldPublish ? "public" : "internal",
+        owner_platform: document.ownerPlatform,
+        metadata: {
+          importer: "shared-pdf-v2",
+          page_count: document.pages.length,
+          owner_platform: document.ownerPlatform,
+          reader_enabled: true,
+        },
       },
       { onConflict: "slug" },
     )
@@ -247,13 +408,32 @@ async function importDocument(supabase, document, options) {
       if (error) throw error;
     }
 
-    if (document.key === "system") {
-      const isPublished = options.publishSystem;
+    if (document.sections.length) {
+      for (let offset = 0; offset < document.sections.length; offset += 50) {
+        const sectionBatch = document.sections.slice(offset, offset + 50).map((section) => ({
+          source_document_id: sourceDocument.id,
+          stable_key: section.stableKey,
+          title: section.title,
+          page_number: section.pageNumber,
+          level: section.level,
+          position: section.position,
+          tab_key: "documenten",
+          metadata: { source: "document_table_of_contents" },
+        }));
+        const { error } = await supabase
+          .from("document_sections")
+          .upsert(sectionBatch, { onConflict: "source_document_id,stable_key" });
+        if (error) throw error;
+      }
+    }
+
+    {
+      const isPublished = shouldPublish;
       const rootId = await upsertKnowledgeObject(supabase, {
         object_type: "dossier",
-        slug: "de-uitgang-is-vol",
-        title: "De uitgang is vol",
-        summary: "Waarom systemen vastlopen wanneer mensen nergens duurzaam naartoe kunnen.",
+        slug: document.dossier.slug,
+        title: document.dossier.title,
+        summary: document.dossier.summary,
         status: isPublished ? "published" : "review",
         visibility: isPublished ? "public" : "internal",
         owner_platform: "aegis",
@@ -263,13 +443,24 @@ async function importDocument(supabase, document, options) {
 
       const { error: dossierError } = await supabase.from("dossiers").upsert({
         id: rootId,
-        eyebrow: "Dossier · wonen en zorg",
-        subtitle: "Woningtekorten blokkeren zorg, veiligheid en zelfstandigheid.",
-        theme_tags: ["Wonen", "Zorg", "Bestuur", "Veiligheid"],
+        eyebrow: document.dossier.eyebrow,
+        subtitle: document.dossier.subtitle,
+        theme_tags: document.dossier.themes,
         current_phase: isPublished ? "Gepubliceerd" : "Redactionele controle",
-        featured: true,
+        featured: document.dossier.featured,
       });
       if (dossierError) throw dossierError;
+
+      const { error: documentLinkError } = await supabase.from("dossier_documents").upsert(
+        {
+          dossier_id: rootId,
+          source_document_id: sourceDocument.id,
+          role: "primary",
+          position: 1,
+        },
+        { onConflict: "dossier_id,source_document_id" },
+      );
+      if (documentLinkError) throw documentLinkError;
 
       for (const [position, topic] of document.topics.entries()) {
         const chapterId = await upsertKnowledgeObject(supabase, {
@@ -322,27 +513,14 @@ async function importDocument(supabase, document, options) {
         );
         if (blockError) throw blockError;
       }
-    } else {
-      await upsertKnowledgeObject(supabase, {
-        object_type: "dataset",
-        slug: "datum-publiek",
-        title: "Datum publiek",
-        summary: "Intern bronregister; publicatie vereist controle van datum, processtatus en onzekerheid.",
-        status: "review",
-        visibility: "internal",
-        owner_platform: "phosphoros",
-        metadata: {
-          source_document_id: sourceDocument.id,
-          sensitive: true,
-          publication_rule: "manual_editorial_review",
-        },
-      });
     }
 
     const counters = {
       pages: document.pages.length,
       topics: document.topics.length,
-      public: document.key === "system" && options.publishSystem,
+      sections: document.sections.length,
+      ownerPlatform: document.ownerPlatform,
+      public: shouldPublish,
     };
     const { error: completeError } = await supabase
       .from("import_runs")
@@ -376,13 +554,15 @@ async function main() {
     pages: document.pages.length,
     characters: document.pages.reduce((total, page) => total + page.text.length, 0),
     topics: document.topics.length,
+    sections: document.sections.length,
+    ownerPlatform: document.ownerPlatform,
     checksum: document.checksum,
     visibility: "internal",
   }));
 
   if (options.dryRun) {
     console.table(summary);
-    console.log("\nGeen gegevens opgeslagen. Het register Datum publiek blijft bij import intern totdat iedere zaak redactioneel is gecontroleerd.");
+    console.log("\nGeen gegevens opgeslagen. Alle documenten zijn als afzonderlijke Aegis-dossiers voorbereid; publicatie vereist een expliciete publicatievlag.");
     return;
   }
 

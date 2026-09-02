@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import DocumentReader from "@/components/DocumentReader";
 import { dossiers } from "@/lib/site-data";
-import { getPublishedDossier } from "@/lib/queries/dossiers";
+import { getPublishedDossier, getPublishedDossierDocuments } from "@/lib/queries/dossiers";
 
 type DossierPageProps = {
   params: Promise<{ slug: string }>;
@@ -22,13 +23,17 @@ export async function generateMetadata({ params }: DossierPageProps): Promise<Me
 
 export default async function DossierPage({ params }: DossierPageProps) {
   const { slug } = await params;
-  const dossier = await getPublishedDossier(slug);
+  const [dossier, documents] = await Promise.all([
+    getPublishedDossier(slug),
+    getPublishedDossierDocuments(slug),
+  ]);
 
   if (!dossier) notFound();
 
   const tabs = [
     ...(dossier.chain.length ? [{ id: "keten", label: "Keten" }] : []),
     ...dossier.sections.map(({ id, label }) => ({ id, label })),
+    ...(documents.length ? [{ id: "documenten", label: "Documenten" }] : []),
   ];
 
   return (
@@ -103,6 +108,8 @@ export default async function DossierPage({ params }: DossierPageProps) {
           </section>
         ))}
       </div>
+
+      <DocumentReader documents={documents} />
 
       <section className="knowledge-links" aria-label="Verbonden kennisplatforms">
         {dossier.knowledgeLinks.map((item) => (

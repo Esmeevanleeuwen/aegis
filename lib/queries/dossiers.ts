@@ -1,5 +1,6 @@
 import type {
   ContentBlockRow,
+  DossierDocument,
   DossierDetail,
   DossierSection,
   PublishedDossierRow,
@@ -148,4 +149,74 @@ export async function getPublishedDossier(slug: string): Promise<DossierDetail |
     knowledgeLinks: defaultKnowledgeLinks,
     dataOrigin: "supabase",
   };
+}
+
+type DossierDocumentRow = {
+  source_document_id: string;
+  document_slug: string;
+  title: string;
+  description: string | null;
+  role: string;
+  page_count: number;
+  section_count: number;
+};
+
+export async function getPublishedDossierDocuments(slug: string): Promise<DossierDocument[]> {
+  if (!hasSupabaseConfig()) return [];
+
+  const supabase = createPublicSupabaseClient();
+  const { data, error } = await supabase
+    .from("aegis_dossier_documents")
+    .select("source_document_id, document_slug, title, description, role, page_count, section_count")
+    .eq("dossier_slug", slug)
+    .order("position");
+
+  if (error) throw new Error(`Dossierdocumenten konden niet worden geladen: ${error.message}`);
+
+  return Promise.all(((data ?? []) as DossierDocumentRow[]).map(async (document) => {
+    const [{ data: sections, error: sectionsError }, { data: pages, error: pagesError }] =
+      await Promise.all([
+        supabase
+          .from("aegis_document_sections")
+          .select("id, stable_key, title, page_number, level, position")
+          .eq("source_document_id", document.source_document_id)
+          .order("position"),
+        supabase
+          .from("aegis_document_pages")
+          .select("id, page_number, extracted_text, review_status")
+          .eq("source_document_id", document.source_document_id)
+          .order("page_number"),
+      ]);
+
+    if (sectionsError) {
+      throw new Error(`Inhoudsopgave kon niet worden geladen: ${sectionsError.message}`);
+    }
+    if (pagesError) {
+      throw new Error(`Documentpagina's konden niet worden geladen: ${pagesError.message}`);
+    }
+
+    return {
+      id: document.source_document_id,
+      slug: document.document_slug,
+      title: document.title,
+      description: document.description,
+      role: document.role,
+      pageCount: document.page_count,
+      sectionCount: document.section_count,
+      sections: (sections ?? []).map((section) => ({
+        id: section.id as string,
+        stableKey: section.stable_key as string,
+        title: section.title as string,
+        pageNumber: section.page_number as number,
+        level: section.level as number,
+        position: section.position as number,
+      })),
+      pages: (pages ?? []).map((page) => ({
+        id: page.id as string,
+        pageNumber: page.page_number as number,
+        text: page.extracted_text as string,
+        reviewStatus: page.review_status as string,
+      })),
+    };
+  }));
 }

@@ -49,7 +49,7 @@ Wie de lokale importeur via de Data API gebruikt, moet in de Supabase API-instel
 het schema `aegis` toevoegen aan **Exposed schemas**. De gewone website gebruikt alleen
 de beveiligde publieke views en heeft deze extra instelling niet nodig.
 
-## Alle dossierpagina's importeren
+## Alle Aegis-dossiers importeren
 
 Bewaar de PDF's lokaal in `imports/`; deze map sluit bronbestanden automatisch uit van
 Git. Controleer eerst de import:
@@ -57,7 +57,10 @@ Git. Controleer eerst de import:
 ```bash
 npm run content:verify -- \
   --system-pdf "imports/Overkoepelend dossier systeeminrichting.pdf" \
-  --public-data-pdf "imports/Datum publiek.pdf"
+  --public-data-pdf "imports/Datum publiek.pdf" \
+  --crime-system-pdf "imports/Criminaliteit als systeem.pdf" \
+  --wwii-system-pdf "imports/De Tweede Wereldoorlog als systeem.pdf" \
+  --gelderland-network-pdf "imports/De organisatorische netwerklaag van Gelderland informatie.pdf"
 ```
 
 Importeer daarna naar Supabase:
@@ -65,12 +68,16 @@ Importeer daarna naar Supabase:
 ```bash
 npm run content:import -- \
   --system-pdf "imports/Overkoepelend dossier systeeminrichting.pdf" \
-  --public-data-pdf "imports/Datum publiek.pdf"
+  --public-data-pdf "imports/Datum publiek.pdf" \
+  --crime-system-pdf "imports/Criminaliteit als systeem.pdf" \
+  --wwii-system-pdf "imports/De Tweede Wereldoorlog als systeem.pdf" \
+  --gelderland-network-pdf "imports/De organisatorische netwerklaag van Gelderland informatie.pdf"
 ```
 
-De importeur bewaart iedere pagina met paginanummer en SHA-256-controlewaarde.
-Nieuwe bronpagina's en het register *Datum publiek* blijven standaard intern. Voeg
-`--publish-system` alleen toe nadat de systeemhoofdstukken redactioneel zijn beoordeeld.
+De importeur bewaart iedere pagina met paginanummer en SHA-256-controlewaarde. Voeg
+`--publish-all` alleen toe wanneer alle opgegeven documenten gepubliceerd mogen worden.
+De inhoudsopgave wordt als navigatiestructuur opgeslagen en de volledige tekst blijft per
+bronpagina beschikbaar.
 
 ## Publicatieworkflow
 

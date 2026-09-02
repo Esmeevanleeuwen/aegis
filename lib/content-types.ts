@@ -65,3 +65,31 @@ export type ContentBlockRow = {
   position: number;
   metadata: Record<string, unknown> | null;
 };
+
+export type DocumentSection = {
+  id: string;
+  stableKey: string;
+  title: string;
+  pageNumber: number;
+  level: number;
+  position: number;
+};
+
+export type DocumentPage = {
+  id: string;
+  pageNumber: number;
+  text: string;
+  reviewStatus: string;
+};
+
+export type DossierDocument = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  role: string;
+  pageCount: number;
+  sectionCount: number;
+  sections: DocumentSection[];
+  pages: DocumentPage[];
+};
