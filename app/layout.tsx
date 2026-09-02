@@ -5,11 +5,11 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Aegis — van kennis naar bescherming",
-    template: "%s | Aegis",
+    default: "Ampara — van kennis naar bescherming",
+    template: "%s | Ampara",
   },
   description:
-    "Aegis verbindt publieke kennis aan politieke keuzes, democratische besluiten en controleerbare uitvoering.",
+    "Ampara verbindt publieke kennis aan politieke keuzes, democratische besluiten en controleerbare uitvoering.",
 };
 
 export default function RootLayout({

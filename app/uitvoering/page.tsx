@@ -10,7 +10,7 @@ export default function ExecutionPage() {
     <>
       <PageIntro eyebrow="Publieke verantwoording" title="Een belofte telt pas in de uitvoering.">
         <p>
-          Aegis volgt niet alleen aangenomen voorstellen, maar ook capaciteit,
+          Ampara volgt niet alleen aangenomen voorstellen, maar ook capaciteit,
           budget, termijnen en verdelingseffecten. Hier wordt zichtbaar wanneer
           een probleem werkelijk afneemt of alleen naar een andere plek schuift.
         </p>

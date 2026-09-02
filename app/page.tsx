@@ -39,10 +39,10 @@ export default async function Home() {
           <p className="eyebrow">Collectieve bescherming</p>
           <h1>Bescherming wordt politiek wanneer we haar samen organiseren.</h1>
           <p>
-            Aegis verbindt onafhankelijk onderzoek, publieke kennis en menselijke
+            Ampara verbindt onafhankelijk onderzoek, publieke kennis en menselijke
             ervaring aan keuzes waar leden werkelijk over kunnen beslissen.
           </p>
-          <Link className="text-link" href="/over-aegis">
+          <Link className="text-link" href="/over-ampara">
             Lees onze grondslag <span>→</span>
           </Link>
         </div>
@@ -167,7 +167,7 @@ export default async function Home() {
             <span>Nederland</span>
             <span>5 actieve gebieden</span>
           </div>
-          <svg viewBox="0 0 420 560" role="img" aria-label="Kaart van Nederland met vijf actieve Aegis-gebieden">
+          <svg viewBox="0 0 420 560" role="img" aria-label="Kaart van Nederland met vijf actieve Ampara-gebieden">
             <path d="M155 24 237 40 286 82 304 136 279 184 318 230 306 278 342 323 316 372 287 396 294 444 253 489 238 536 190 520 176 478 137 446 128 397 89 365 103 316 133 285 123 236 157 195 147 145 169 102Z" />
             <polyline points="235,113 170,171 203,254 151,326 251,382" />
             <circle cx="235" cy="113" r="8" />
@@ -192,7 +192,7 @@ export default async function Home() {
           <h2>Een dossier eindigt niet bij de conclusie.</h2>
           <p>
             Iedere analyse krijgt een zichtbare politieke route. Zo blijft helder
-            wat onderzocht is, waar Aegis kiest en of die keuze in de praktijk werkt.
+            wat onderzocht is, waar Ampara kiest en of die keuze in de praktijk werkt.
           </p>
           <nav className="route-list" aria-label="Politieke route">
             {politicalRoute.map(([number, title, description, href]) => (

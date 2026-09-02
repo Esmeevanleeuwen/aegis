@@ -7,7 +7,7 @@ const navigation = [
   ["Voorstellen", "/voorstellen"],
   ["Uitvoering", "/uitvoering"],
   ["Lokaal", "/lokaal"],
-  ["Over Aegis", "/over-aegis"],
+  ["Over Ampara", "/over-ampara"],
 ] as const;
 
 export function Header() {
@@ -15,7 +15,7 @@ export function Header() {
     <header className="site-header">
       <div className="site-header__identity">
         <span className="site-header__edition" aria-hidden="true">01</span>
-        <Link className="site-header__brand" href="/" aria-label="Aegis home">
+        <Link className="site-header__brand" href="/" aria-label="Ampara home">
           <BrandMark compact />
         </Link>
         <span className="site-header__descriptor">Publieke politieke kennis</span>

@@ -56,7 +56,7 @@ export default async function DossierPage({ params }: DossierPageProps) {
           </Link>
         </div>
         <div className="photo photo--institution dossier-hero__photo" role="img" aria-label="Publieke institutionele ruimte">
-          <span className="dossier-hero__index" aria-hidden="true">AEGIS · DOSSIER</span>
+          <span className="dossier-hero__index" aria-hidden="true">AMPARA · DOSSIER</span>
           <SystemTrace labels={["Signaal", "Patroon", "Keuze", "Uitvoering"]} />
         </div>
       </section>
@@ -122,7 +122,7 @@ export default async function DossierPage({ params }: DossierPageProps) {
 
       <DocumentReader documents={documents} />
 
-      <section className="knowledge-links" aria-label="Vervolg binnen Aegis">
+      <section className="knowledge-links" aria-label="Vervolg binnen Ampara">
         {dossier.knowledgeLinks.map((item) => (
           <Link className="knowledge-link" href={item.href} key={item.platform}>
             <small>{item.platform} · {item.role}</small>

@@ -20,7 +20,7 @@ export default function StandpuntenPage() {
     <>
       <PageIntro eyebrow="Politieke keuzes" title="Waar kennis eindigt, begint onze keuze.">
         <p>
-          Een feit wordt niet socialistisch door het te publiceren. Aegis maakt
+          Een feit wordt niet socialistisch door het te publiceren. Ampara maakt
           daarom zichtbaar welke waarden worden toegepast, welke alternatieven
           bestaan en wie de gevolgen van een keuze draagt.
         </p>

@@ -34,7 +34,7 @@ export default function NetworkPage() {
           ))}
         </aside>
         <div className="network-canvas">
-          <svg viewBox="0 0 760 640" role="img" aria-label="Netwerk van kennisobjecten rond Aegis">
+          <svg viewBox="0 0 760 640" role="img" aria-label="Netwerk van kennisobjecten rond Ampara">
             <line x1="380" y1="320" x2="380" y2="100" />
             <line x1="380" y1="320" x2="620" y2="180" />
             <line x1="380" y1="320" x2="630" y2="430" />
@@ -51,7 +51,7 @@ export default function NetworkPage() {
             <circle cx="380" cy="550" r="63" />
             <circle cx="125" cy="440" r="63" />
             <circle cx="135" cy="180" r="63" />
-            <text className="center" x="380" y="326">AEGIS</text>
+            <text className="center" x="380" y="326">AMPARA</text>
             <text x="380" y="106">Dossier</text>
             <text x="620" y="186">Claim</text>
             <text x="630" y="436">Bron</text>

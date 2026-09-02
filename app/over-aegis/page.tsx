@@ -3,7 +3,7 @@ import { PageIntro } from "@/components/PageIntro";
 import { ecosystem } from "@/lib/site-data";
 
 export const metadata: Metadata = {
-  title: "Over Aegis",
+  title: "Over Ampara",
 };
 
 const principles = [
@@ -20,7 +20,7 @@ export default function AboutPage() {
     <>
       <PageIntro eyebrow="Partij en politieke tussenlaag" title="Het schild beschermt alleen wanneer mensen het samen dragen.">
         <p>
-          Aegis is een democratisch-socialistische partij die kennis niet bezit,
+          Ampara is een democratisch-socialistische partij die kennis niet bezit,
           maar politiek vertaalt. Het platform verbindt onderzoek aan een
           expliciete keuze, een uitvoerder en publieke verantwoording.
         </p>

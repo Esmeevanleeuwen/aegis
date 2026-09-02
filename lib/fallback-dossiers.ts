@@ -3,28 +3,28 @@ import { dossiers } from "@/lib/site-data";
 
 export const defaultKnowledgeLinks: KnowledgeLink[] = [
   {
-    platform: "Aegis",
+    platform: "Ampara",
     role: "dossiers",
     heading: "Vergelijk dit onderzoek met de andere publieke dossiers.",
     label: "Bekijk alle dossiers",
     href: "/dossiers",
   },
   {
-    platform: "Aegis",
+    platform: "Ampara",
     role: "keuzes",
     heading: "Bekijk waar de analyse overgaat in een politieke keuze.",
     label: "Lees de standpunten",
     href: "/standpunten",
   },
   {
-    platform: "Aegis",
+    platform: "Ampara",
     role: "voorstellen",
     heading: "Volg welke concrete verandering uit het dossier voortkomt.",
     label: "Bekijk de voorstellen",
     href: "/voorstellen",
   },
   {
-    platform: "Aegis",
+    platform: "Ampara",
     role: "uitvoering",
     heading: "Controleer of besluiten ook werkelijk bescherming opleveren.",
     label: "Volg de uitvoering",
@@ -59,7 +59,7 @@ const coreSections: DossierSection[] = [
     eyebrow: "Verandering door de tijd",
     heading: "Publicatiedatum, gebeurtenisdatum en juridische datum blijven gescheiden.",
     paragraphs: [
-      "Een gebeurtenis kan jaren vóór een publicatie hebben plaatsgevonden en een procedure kan daarna opnieuw van status veranderen. Aegis bewaart die momenten afzonderlijk om te voorkomen dat actuele kennis en historische gebeurtenissen door elkaar lopen.",
+      "Een gebeurtenis kan jaren vóór een publicatie hebben plaatsgevonden en een procedure kan daarna opnieuw van status veranderen. Ampara bewaart die momenten afzonderlijk om te voorkomen dat actuele kennis en historische gebeurtenissen door elkaar lopen.",
       "Iedere wijziging krijgt bovendien een revisie, zodat zichtbaar blijft wat wanneer bekend was en waarom een formulering veranderde.",
     ],
   },
@@ -70,7 +70,7 @@ const coreSections: DossierSection[] = [
     heading: "Eén bevinding kan meerdere platformfuncties voeden.",
     paragraphs: [
       "Meridian levert de historische en systemische context. Phosphoros controleert bewijs en tegenspraak. Aegora beschrijft rechten en procedures. AVERA brengt ervaringspatronen in beeld. Civiora opent de publieke dialoog en Ampara helpt collectieve bescherming organiseren.",
-      "Aegis gebruikt die lagen om politieke keuzes, besluiten en uitvoering controleerbaar met elkaar te verbinden, zonder eigenaar te worden van de onafhankelijke redacties.",
+      "Ampara gebruikt die lagen om politieke keuzes, besluiten en uitvoering controleerbaar met elkaar te verbinden, zonder eigenaar te worden van de onafhankelijke redacties.",
     ],
   },
   {

@@ -1853,9 +1853,9 @@ h3 {
 }
 
 .home-brand__lockup .brand__word {
-  font-size: clamp(3.2rem, 8.8vw, 8.3rem);
+  font-size: clamp(3rem, 7vw, 6.7rem);
   font-weight: 500;
-  letter-spacing: 0.3em;
+  letter-spacing: 0.24em;
 }
 
 .home-brand__lockup > p {
@@ -2791,8 +2791,8 @@ h3 {
   }
 
   .home-brand__lockup .brand__word {
-    font-size: clamp(2.9rem, 15vw, 5rem);
-    letter-spacing: 0.2em;
+    font-size: clamp(2.35rem, 11vw, 4.2rem);
+    letter-spacing: 0.13em;
   }
 
   .foundation .photo,
