@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BrandMark } from "@/components/BrandMark";
 import { SystemTrace } from "@/components/SystemTrace";
 import { getPublishedDossiers, getPublishedLibraryStats } from "@/lib/queries/dossiers";
+import { localGroups } from "@/lib/site-data";
 
 const politicalRoute = [
   ["01", "Dossier", "Begrijp het patroon achter losse gebeurtenissen.", "/dossiers"],
@@ -103,7 +104,10 @@ export default async function Home() {
       <section className="current-dossiers container">
         <div className="section-header">
           <div>
-            <p className="eyebrow">Publieke dossiers</p>
+            <div className="section-kicker">
+              <span>03</span>
+              <p className="eyebrow">Publieke signalen</p>
+            </div>
             <h2 className="section-title">Waar systemen vastlopen.</h2>
           </div>
           <Link className="text-link" href="/dossiers">
@@ -135,13 +139,54 @@ export default async function Home() {
         </div>
       </section>
 
+      <section className="home-commons">
+        <div className="home-commons__content">
+          <div className="section-kicker">
+            <span>04</span>
+            <p className="eyebrow">De lokale laag</p>
+          </div>
+          <h2>Collectieven in jouw omgeving.</h2>
+          <p>
+            Dezelfde publieke kennis krijgt lokaal betekenis. Groepen verbinden
+            landelijke dossiers aan voorzieningen, capaciteit en besluiten in hun omgeving.
+          </p>
+          <div className="home-commons__list">
+            {localGroups.map(([name, date]) => (
+              <div key={name}>
+                <strong>{name}</strong>
+                <span>{date}</span>
+              </div>
+            ))}
+          </div>
+          <Link className="text-link" href="/lokaal">
+            Bekijk de lokale laag <span>→</span>
+          </Link>
+        </div>
+        <div className="home-commons__map">
+          <div className="home-commons__map-meta">
+            <span>Nederland</span>
+            <span>5 actieve gebieden</span>
+          </div>
+          <svg viewBox="0 0 420 560" role="img" aria-label="Kaart van Nederland met vijf actieve Aegis-gebieden">
+            <path d="M155 24 237 40 286 82 304 136 279 184 318 230 306 278 342 323 316 372 287 396 294 444 253 489 238 536 190 520 176 478 137 446 128 397 89 365 103 316 133 285 123 236 157 195 147 145 169 102Z" />
+            <polyline points="235,113 170,171 203,254 151,326 251,382" />
+            <circle cx="235" cy="113" r="8" />
+            <circle cx="170" cy="171" r="8" />
+            <circle cx="203" cy="254" r="8" />
+            <circle cx="151" cy="326" r="8" />
+            <circle cx="251" cy="382" r="8" />
+          </svg>
+          <p>Landelijke kennis wordt pas bescherming wanneer zij lokaal handelbaar wordt.</p>
+        </div>
+      </section>
+
       <section className="political-route">
         <div className="photo photo--portrait political-route__photo" role="img" aria-label="Portret van iemand die betrokken is bij publieke verandering">
           <SystemTrace labels={["Kennis", "Keuze", "Besluit", "Resultaat"]} />
         </div>
         <div className="political-route__content">
           <div className="section-kicker">
-            <span>03</span>
+            <span>05</span>
             <p className="eyebrow">Van inzicht naar bescherming</p>
           </div>
           <h2>Een dossier eindigt niet bij de conclusie.</h2>
