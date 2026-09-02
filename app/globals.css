@@ -1868,12 +1868,12 @@ h3 {
 .foundation {
   background: #ffffff;
   border-bottom-color: var(--ink);
-  grid-template-columns: minmax(0, 1.66fr) minmax(340px, 0.64fr);
-  min-height: 500px;
+  grid-template-columns: minmax(0, 1.38fr) minmax(340px, 0.72fr);
+  min-height: 420px;
 }
 
 .foundation .photo {
-  min-height: 500px;
+  min-height: 420px;
 }
 
 .foundation__copy {
@@ -1956,7 +1956,7 @@ h3 {
 }
 
 .system-line__photo {
-  min-height: 460px;
+  min-height: 350px;
 }
 
 .system-line__intro {
@@ -2106,7 +2106,7 @@ h3 {
 }
 
 .political-route__photo {
-  min-height: 720px;
+  min-height: 560px;
 }
 
 .political-route__content {
@@ -2798,7 +2798,7 @@ h3 {
   .foundation .photo,
   .political-route__photo,
   .home-commons__map {
-    min-height: 430px;
+    min-height: 340px;
   }
 
   .home-commons__map svg {
@@ -2810,7 +2810,7 @@ h3 {
   }
 
   .system-line__photo {
-    min-height: 390px;
+    min-height: 300px;
   }
 
   .system-trace__labels {
