@@ -55,25 +55,27 @@ export function DossierExplorer({ dossiers }: { dossiers: Dossier[] }) {
 
       <p className="result-count">{visible.length} dossiers gevonden</p>
       <div className="dossier-list">
-        {visible.map((dossier) => (
+        {visible.map((dossier, index) => (
           <Link
             className="dossier-row"
             href={`/dossiers/${dossier.slug}`}
             key={dossier.slug}
           >
-            <span className="dossier-row__mark" aria-hidden="true" />
-            <span>
-              <strong>{dossier.title}</strong>
-              <small>{dossier.themes.join(" · ")}</small>
+            <span className="dossier-row__number" aria-hidden="true">
+              {String(index + 1).padStart(2, "0")}
             </span>
-            <span>{dossier.outcome}</span>
+            <span className="dossier-row__title">
+              <small>{dossier.themes.join(" · ")}</small>
+              <strong>{dossier.title}</strong>
+            </span>
+            <span className="dossier-row__outcome">{dossier.outcome}</span>
             <span className="status">{dossier.status}</span>
-            <span>
+            <span className="dossier-row__checked">
               <small>Laatste controle</small>
               {dossier.checked}
             </span>
             <span className="dossier-row__relations">
-              {dossier.relations} relaties <b>→</b>
+              Open dossier <b>↗</b>
             </span>
           </Link>
         ))}

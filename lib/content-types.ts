@@ -21,7 +21,7 @@ export type DossierSection = {
 };
 
 export type KnowledgeLink = {
-  platform: "Meridian" | "Phosphoros" | "Aegora" | "AVERA" | "Civiora" | "Ampara";
+  platform: "Aegis" | "Meridian" | "Phosphoros" | "Aegora" | "AVERA" | "Civiora" | "Ampara";
   role: string;
   heading: string;
   label: string;

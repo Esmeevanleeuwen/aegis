@@ -13,16 +13,22 @@ const navigation = [
 export function Header() {
   return (
     <header className="site-header">
-      <Link className="site-header__brand" href="/" aria-label="Aegis home">
-        <BrandMark compact />
-      </Link>
+      <div className="site-header__identity">
+        <span className="site-header__edition" aria-hidden="true">01</span>
+        <Link className="site-header__brand" href="/" aria-label="Aegis home">
+          <BrandMark compact />
+        </Link>
+        <span className="site-header__descriptor">Publieke politieke kennis</span>
+      </div>
       <nav className="desktop-nav" aria-label="Hoofdnavigatie">
         {navigation.map(([label, href]) => (
           <Link href={href} key={href}>
             {label}
           </Link>
         ))}
-        <Link href="/netwerk">Zoeken</Link>
+        <Link className="desktop-nav__search" href="/netwerk" aria-label="Open het kennisnetwerk">
+          Netwerk <span aria-hidden="true">↗</span>
+        </Link>
       </nav>
       <details className="mobile-menu">
         <summary>Menu</summary>

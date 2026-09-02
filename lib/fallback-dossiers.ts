@@ -3,32 +3,32 @@ import { dossiers } from "@/lib/site-data";
 
 export const defaultKnowledgeLinks: KnowledgeLink[] = [
   {
-    platform: "Phosphoros",
-    role: "bewijs",
-    heading: "Controleer de bronnen en bewijsstatus.",
-    label: "Open de onderbouwing",
-    href: "/netwerk",
+    platform: "Aegis",
+    role: "dossiers",
+    heading: "Vergelijk dit onderzoek met de andere publieke dossiers.",
+    label: "Bekijk alle dossiers",
+    href: "/dossiers",
   },
   {
-    platform: "Meridian",
-    role: "context",
-    heading: "Bekijk hoe deze afhankelijkheid is ontstaan.",
-    label: "Open de systeemcontext",
-    href: "/netwerk",
-  },
-  {
-    platform: "Aegora",
-    role: "rechten",
-    heading: "Lees welke bescherming en route nu gelden.",
-    label: "Open de rechtslaag",
+    platform: "Aegis",
+    role: "keuzes",
+    heading: "Bekijk waar de analyse overgaat in een politieke keuze.",
+    label: "Lees de standpunten",
     href: "/standpunten",
   },
   {
-    platform: "AVERA",
-    role: "ervaringen",
-    heading: "Zie hoe de systeemdruk in het dagelijks leven doorwerkt.",
-    label: "Open de ervaringslaag",
-    href: "/netwerk",
+    platform: "Aegis",
+    role: "voorstellen",
+    heading: "Volg welke concrete verandering uit het dossier voortkomt.",
+    label: "Bekijk de voorstellen",
+    href: "/voorstellen",
+  },
+  {
+    platform: "Aegis",
+    role: "uitvoering",
+    heading: "Controleer of besluiten ook werkelijk bescherming opleveren.",
+    label: "Volg de uitvoering",
+    href: "/uitvoering",
   },
 ];
 

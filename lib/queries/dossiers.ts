@@ -78,6 +78,40 @@ export async function getPublishedDossiers(): Promise<Dossier[]> {
   return (data as PublishedDossierRow[]).map(mapDossierRow);
 }
 
+export type PublishedLibraryStats = {
+  documents: number;
+  pages: number;
+  sections: number;
+};
+
+export async function getPublishedLibraryStats(): Promise<PublishedLibraryStats> {
+  if (!hasSupabaseConfig()) return { documents: 0, pages: 0, sections: 0 };
+
+  const supabase = createPublicSupabaseClient();
+  const { data, error } = await supabase
+    .from("aegis_dossier_documents")
+    .select("source_document_id, page_count, section_count");
+
+  if (error) throw new Error(`Documentstatistieken konden niet worden geladen: ${error.message}`);
+
+  const documents = new Map<string, { pageCount: number; sectionCount: number }>();
+  for (const row of data ?? []) {
+    documents.set(row.source_document_id as string, {
+      pageCount: row.page_count as number,
+      sectionCount: row.section_count as number,
+    });
+  }
+
+  return Array.from(documents.values()).reduce<PublishedLibraryStats>(
+    (stats, document) => ({
+      documents: stats.documents + 1,
+      pages: stats.pages + document.pageCount,
+      sections: stats.sections + document.sectionCount,
+    }),
+    { documents: 0, pages: 0, sections: 0 },
+  );
+}
+
 export async function getPublishedDossier(slug: string): Promise<DossierDetail | undefined> {
   const fallback = fallbackDossierDetails.get(slug);
   if (!hasSupabaseConfig()) return fallback;

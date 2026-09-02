@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import DocumentReader from "@/components/DocumentReader";
+import { SystemTrace } from "@/components/SystemTrace";
 import { dossiers } from "@/lib/site-data";
 import { getPublishedDossier, getPublishedDossierDocuments } from "@/lib/queries/dossiers";
 
@@ -31,8 +32,11 @@ export default async function DossierPage({ params }: DossierPageProps) {
   if (!dossier) notFound();
 
   const tabs = [
+    { id: "overzicht", label: "Overzicht" },
     ...(dossier.chain.length ? [{ id: "keten", label: "Keten" }] : []),
-    ...dossier.sections.map(({ id, label }) => ({ id, label })),
+    ...dossier.sections
+      .filter(({ id }) => id !== "overzicht")
+      .map(({ id, label }) => ({ id, label })),
     ...(documents.length ? [{ id: "documenten", label: "Documenten" }] : []),
   ];
 
@@ -43,15 +47,18 @@ export default async function DossierPage({ params }: DossierPageProps) {
           <p className="eyebrow">{dossier.eyebrow}</p>
           <h1>{dossier.title}.</h1>
           <p>{dossier.description}</p>
+          <div className="dossier-hero__meta">
+            <span>{dossier.themes.join(" · ")}</span>
+            <span>Gecontroleerd {dossier.checked}</span>
+          </div>
           <Link className="text-link" href={dossier.chain.length ? "#keten" : `#${tabs[0]?.id}`}>
             Lees het dossier <span>↓</span>
           </Link>
         </div>
-        <div
-          className="photo photo--institution dossier-hero__photo"
-          role="img"
-          aria-label="Publieke institutionele ruimte"
-        />
+        <div className="photo photo--institution dossier-hero__photo" role="img" aria-label="Publieke institutionele ruimte">
+          <span className="dossier-hero__index" aria-hidden="true">AEGIS · DOSSIER</span>
+          <SystemTrace labels={["Signaal", "Patroon", "Keuze", "Uitvoering"]} />
+        </div>
       </section>
 
       <nav className="local-tabs" aria-label="Onderdelen van dit dossier">
@@ -60,7 +67,11 @@ export default async function DossierPage({ params }: DossierPageProps) {
         ))}
       </nav>
 
-      <section className="status-grid" aria-label="Bewijsstatus">
+      <section className="status-grid" id="overzicht" aria-label="Bewijsstatus">
+        <div className="status-grid__intro">
+          <small>In één oogopslag</small>
+          <strong>Wat weten we?</strong>
+        </div>
         <div className="status-block">
           <small>Vastgesteld</small>
           <strong>{dossier.evidence.established}</strong>
@@ -111,7 +122,7 @@ export default async function DossierPage({ params }: DossierPageProps) {
 
       <DocumentReader documents={documents} />
 
-      <section className="knowledge-links" aria-label="Verbonden kennisplatforms">
+      <section className="knowledge-links" aria-label="Vervolg binnen Aegis">
         {dossier.knowledgeLinks.map((item) => (
           <Link className="knowledge-link" href={item.href} key={item.platform}>
             <small>{item.platform} · {item.role}</small>

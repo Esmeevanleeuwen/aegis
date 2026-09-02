@@ -120,7 +120,6 @@ export const localGroups = [
 
 export const ecosystem = [
   ["Meridian", "Context", "Geschiedenis, oorzaken en systeemverbanden."],
-  ["Phosphoros", "Bewijs", "Claims, bronnen, onzekerheid en tegenspraak."],
   ["Aegora", "Rechten", "Rechten, procedures en juridische bescherming."],
   ["AVERA", "Ervaringen", "Menselijke ervaringen, patronen en herstel."],
   ["Civiora", "Dialoog", "Publieke vragen en maatschappelijke dialoog."],

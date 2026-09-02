@@ -13,7 +13,11 @@ export function PageIntro({
 }) {
   return (
     <section className="page-intro">
-      <div>
+      <div className="page-intro__title">
+        <div className="page-intro__rail" aria-hidden="true">
+          <span>01</span>
+          <span>{eyebrow ?? "Aegis"}</span>
+        </div>
         {eyebrow && <p className="eyebrow">{eyebrow}</p>}
         <h1>{title}</h1>
       </div>

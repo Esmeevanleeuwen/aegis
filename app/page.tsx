@@ -1,34 +1,41 @@
 import Link from "next/link";
 import { BrandMark } from "@/components/BrandMark";
-import { ecosystem } from "@/lib/site-data";
-import { getPublishedDossiers } from "@/lib/queries/dossiers";
+import { SystemTrace } from "@/components/SystemTrace";
+import { getPublishedDossiers, getPublishedLibraryStats } from "@/lib/queries/dossiers";
+
+const politicalRoute = [
+  ["01", "Dossier", "Begrijp het patroon achter losse gebeurtenissen.", "/dossiers"],
+  ["02", "Keuze", "Zie waar feiten eindigen en waarden richting geven.", "/standpunten"],
+  ["03", "Besluit", "Volg voorstellen, wijzigingen en stemmingen.", "/besluiten"],
+  ["04", "Uitvoering", "Controleer wat aantoonbaar verandert.", "/uitvoering"],
+] as const;
 
 export default async function Home() {
-  const dossiers = await getPublishedDossiers();
+  const [dossiers, libraryStats] = await Promise.all([
+    getPublishedDossiers(),
+    getPublishedLibraryStats(),
+  ]);
+  const [leadDossier, ...otherDossiers] = dossiers;
+
   return (
     <>
       <section className="home-brand">
-        <p className="eyebrow">Publieke grondslag</p>
+        <div className="home-brand__rail">
+          <span>01</span>
+          <span>Politieke kennislaag</span>
+        </div>
         <div className="home-brand__lockup">
           <BrandMark />
-        </div>
-        <div className="color-rule" aria-hidden="true">
-          <span />
-          <span />
-          <span />
-          <span />
-          <span />
+          <p>Van publieke kennis naar democratische verandering.</p>
         </div>
       </section>
 
       <section className="foundation">
-        <div
-          className="photo photo--builders"
-          role="img"
-          aria-label="Mensen werken gezamenlijk aan een publieke constructie"
-        />
+        <div className="photo photo--builders" role="img" aria-label="Mensen werken gezamenlijk aan een publieke constructie">
+          <SystemTrace labels={["Ervaring", "Patroon", "Organisatie", "Verandering"]} />
+        </div>
         <div className="foundation__copy">
-          <p className="eyebrow">Bescherming door organisatie</p>
+          <p className="eyebrow">Collectieve bescherming</p>
           <h1>Bescherming wordt politiek wanneer we haar samen organiseren.</h1>
           <p>
             Aegis verbindt onafhankelijk onderzoek, publieke kennis en menselijke
@@ -53,25 +60,12 @@ export default async function Home() {
       </nav>
 
       <section className="system-line">
-        <p className="eyebrow">Van dagelijks leven naar uitvoering</p>
+        <div className="section-kicker">
+          <span>02</span>
+          <p className="eyebrow">De gedeelde lijn</p>
+        </div>
         <div className="photo photo--people system-line__photo">
-          <div className="system-line__overlay" aria-hidden="true">
-            <svg viewBox="0 0 100 40" preserveAspectRatio="none">
-              <polyline points="4,24 25,28 49,24 72,29 97,22" />
-              <circle cx="4" cy="24" r="0.8" />
-              <circle cx="25" cy="28" r="0.8" />
-              <circle cx="49" cy="24" r="0.8" />
-              <circle cx="72" cy="29" r="0.8" />
-              <circle cx="97" cy="22" r="0.8" />
-            </svg>
-            <div className="system-line__labels">
-              <span>Ervaring</span>
-              <span>Patroon</span>
-              <span>Bewijs</span>
-              <span>Besluit</span>
-              <span>Uitvoering</span>
-            </div>
-          </div>
+          <SystemTrace labels={["Ervaring", "Onderzoek", "Keuze", "Uitvoering"]} />
         </div>
         <div className="system-line__intro">
           <h2>Eén lijn van dagelijks leven naar politieke verandering.</h2>
@@ -88,20 +82,20 @@ export default async function Home() {
         </div>
         <div className="metrics">
           <div className="metric">
-            <small>Dossiers in structuur</small>
+            <small>Publieke dossiers</small>
             <strong>{dossiers.length}</strong>
           </div>
           <div className="metric">
-            <small>Herkenbare bronpagina&apos;s</small>
-            <strong>84</strong>
+            <small>Volledige documenten</small>
+            <strong>{libraryStats.documents}</strong>
           </div>
           <div className="metric">
-            <small>Inhoudelijke hoofdstukken</small>
-            <strong>12</strong>
+            <small>Leesbare bronpagina&apos;s</small>
+            <strong>{libraryStats.pages}</strong>
           </div>
           <div className="metric">
-            <small>Verbonden platforms</small>
-            <strong>{ecosystem.length}</strong>
+            <small>Navigatiepunten</small>
+            <strong>{libraryStats.sections}</strong>
           </div>
         </div>
       </section>
@@ -116,44 +110,55 @@ export default async function Home() {
             Alle dossiers <span>→</span>
           </Link>
         </div>
-        <div className="dossier-cards">
-          {dossiers.slice(0, 3).map((dossier, index) => (
-            <Link
-              className="dossier-card"
-              href={`/dossiers/${dossier.slug}`}
-              key={dossier.slug}
-            >
-              <span className="dossier-card__number">0{index + 1}</span>
-              <h3>{dossier.title}</h3>
-              <p>{dossier.outcome}</p>
+        <div className="dossier-showcase">
+          {leadDossier ? (
+            <Link className="dossier-feature" href={`/dossiers/${leadDossier.slug}`}>
+              <span className="dossier-card__number">01 · Hoofddossier</span>
+              <h3>{leadDossier.title}</h3>
+              <p>{leadDossier.outcome}</p>
               <div className="dossier-card__meta">
-                <span>{dossier.status}</span>
-                <span>{dossier.relations} relaties</span>
+                <span>{leadDossier.status}</span>
+                <span>Open dossier ↗</span>
               </div>
             </Link>
-          ))}
+          ) : null}
+          <div className="dossier-index">
+            {otherDossiers.map((dossier, index) => (
+              <Link href={`/dossiers/${dossier.slug}`} key={dossier.slug}>
+                <span>{String(index + 2).padStart(2, "0")}</span>
+                <strong>{dossier.title}</strong>
+                <small>{dossier.themes.join(" · ")}</small>
+                <b aria-hidden="true">↗</b>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section className="ecosystem-section">
-        <div className="container">
-          <div className="ecosystem-section__intro">
-            <h2>Van kennis naar verandering.</h2>
-            <p>
-              Aegis bezit de andere platforms niet. Het gebruikt hun openbare
-              kennis en maakt zichtbaar waar feiten eindigen en een politieke
-              keuze begint.
-            </p>
+      <section className="political-route">
+        <div className="photo photo--portrait political-route__photo" role="img" aria-label="Portret van iemand die betrokken is bij publieke verandering">
+          <SystemTrace labels={["Kennis", "Keuze", "Besluit", "Resultaat"]} />
+        </div>
+        <div className="political-route__content">
+          <div className="section-kicker">
+            <span>03</span>
+            <p className="eyebrow">Van inzicht naar bescherming</p>
           </div>
-          <div className="ecosystem-grid">
-            {ecosystem.map(([name, role, description]) => (
-              <article className="ecosystem-card" key={name}>
-                <small>{role}</small>
-                <h3>{name}</h3>
-                <p>{description}</p>
-              </article>
+          <h2>Een dossier eindigt niet bij de conclusie.</h2>
+          <p>
+            Iedere analyse krijgt een zichtbare politieke route. Zo blijft helder
+            wat onderzocht is, waar Aegis kiest en of die keuze in de praktijk werkt.
+          </p>
+          <nav className="route-list" aria-label="Politieke route">
+            {politicalRoute.map(([number, title, description, href]) => (
+              <Link href={href} key={title}>
+                <span>{number}</span>
+                <strong>{title}</strong>
+                <small>{description}</small>
+                <b aria-hidden="true">↗</b>
+              </Link>
             ))}
-          </div>
+          </nav>
         </div>
       </section>
     </>
