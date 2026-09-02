@@ -6,9 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "content:import": "node scripts/import-dossiers.mjs",
+    "content:verify": "node scripts/import-dossiers.mjs --dry-run"
   },
   "dependencies": {
+    "@supabase/supabase-js": "2.112.4",
     "next": "^16.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DossierExplorer } from "@/components/DossierExplorer";
 import { PageIntro } from "@/components/PageIntro";
+import { getPublishedDossiers } from "@/lib/queries/dossiers";
 
 export const metadata: Metadata = {
   title: "Dossiers",
@@ -8,7 +9,9 @@ export const metadata: Metadata = {
     "Onderzoek waar systemen vastlopen en welke gevolgen daardoor worden verplaatst.",
 };
 
-export default function DossiersPage() {
+export default async function DossiersPage() {
+  const dossiers = await getPublishedDossiers();
+
   return (
     <>
       <PageIntro eyebrow="Publieke kennis" title="Waar systemen vastlopen.">
@@ -19,7 +22,7 @@ export default function DossiersPage() {
         </p>
       </PageIntro>
       <section className="page-section">
-        <DossierExplorer />
+        <DossierExplorer dossiers={dossiers} />
       </section>
     </>
   );

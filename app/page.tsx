@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { BrandMark } from "@/components/BrandMark";
-import { dossiers, ecosystem } from "@/lib/site-data";
+import { ecosystem } from "@/lib/site-data";
+import { getPublishedDossiers } from "@/lib/queries/dossiers";
 
-export default function Home() {
+export default async function Home() {
+  const dossiers = await getPublishedDossiers();
   return (
     <>
       <section className="home-brand">
@@ -86,20 +88,20 @@ export default function Home() {
         </div>
         <div className="metrics">
           <div className="metric">
-            <small>Actieve dossiers</small>
-            <strong>24</strong>
+            <small>Dossiers in structuur</small>
+            <strong>{dossiers.length}</strong>
           </div>
           <div className="metric">
-            <small>Gecontroleerde bronnen</small>
-            <strong>6.732</strong>
+            <small>Herkenbare bronpagina&apos;s</small>
+            <strong>84</strong>
           </div>
           <div className="metric">
-            <small>Voorstellen</small>
-            <strong>18</strong>
-          </div>
-          <div className="metric">
-            <small>Lokale groepen</small>
+            <small>Inhoudelijke hoofdstukken</small>
             <strong>12</strong>
+          </div>
+          <div className="metric">
+            <small>Verbonden platforms</small>
+            <strong>{ecosystem.length}</strong>
           </div>
         </div>
       </section>
@@ -118,9 +120,7 @@ export default function Home() {
           {dossiers.slice(0, 3).map((dossier, index) => (
             <Link
               className="dossier-card"
-              href={
-                index === 0 ? "/dossiers/de-uitgang-is-vol" : "/dossiers"
-              }
+              href={`/dossiers/${dossier.slug}`}
               key={dossier.slug}
             >
               <span className="dossier-card__number">0{index + 1}</span>

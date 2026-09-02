@@ -2,11 +2,14 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { dossiers } from "@/lib/site-data";
+import type { Dossier } from "@/lib/site-data";
 
-const themes = ["Alles", "Wonen", "Zorg", "Werk", "Veiligheid", "Onderwijs"];
+export function DossierExplorer({ dossiers }: { dossiers: Dossier[] }) {
+  const themes = useMemo(
+    () => ["Alles", ...Array.from(new Set(dossiers.flatMap((dossier) => dossier.themes)))],
+    [dossiers],
+  );
 
-export function DossierExplorer() {
   const [query, setQuery] = useState("");
   const [theme, setTheme] = useState("Alles");
 
@@ -22,7 +25,7 @@ export function DossierExplorer() {
           .includes(normalized);
       return matchesTheme && matchesQuery;
     });
-  }, [query, theme]);
+  }, [dossiers, query, theme]);
 
   return (
     <div className="dossier-explorer">
@@ -55,11 +58,7 @@ export function DossierExplorer() {
         {visible.map((dossier) => (
           <Link
             className="dossier-row"
-            href={
-              dossier.slug === "de-uitgang-is-vol"
-                ? "/dossiers/de-uitgang-is-vol"
-                : "/dossiers"
-            }
+            href={`/dossiers/${dossier.slug}`}
             key={dossier.slug}
           >
             <span className="dossier-row__mark" aria-hidden="true" />
