@@ -1,6 +1,6 @@
 -- Curated public starting point. Raw PDF pages are imported separately and remain internal.
 
-insert into public.knowledge_objects (
+insert into aegis.knowledge_objects (
   object_type, slug, title, summary, status, visibility, owner_platform,
   published_at, last_checked_at, metadata
 )
@@ -25,7 +25,7 @@ on conflict (object_type, slug) do update set
   last_checked_at = excluded.last_checked_at,
   metadata = excluded.metadata;
 
-insert into public.dossiers (id, eyebrow, subtitle, theme_tags, current_phase, featured)
+insert into aegis.dossiers (id, eyebrow, subtitle, theme_tags, current_phase, featured)
 select
   id,
   'Dossier · wonen en zorg',
@@ -33,7 +33,7 @@ select
   array['Wonen', 'Zorg', 'Bestuur', 'Veiligheid'],
   'Gepubliceerd',
   true
-from public.knowledge_objects
+from aegis.knowledge_objects
 where object_type = 'dossier' and slug = 'de-uitgang-is-vol'
 on conflict (id) do update set
   eyebrow = excluded.eyebrow,
@@ -43,7 +43,7 @@ on conflict (id) do update set
   featured = excluded.featured;
 
 with dossier as (
-  select id from public.knowledge_objects
+  select id from aegis.knowledge_objects
   where object_type = 'dossier' and slug = 'de-uitgang-is-vol'
 ), blocks(stable_key, block_type, eyebrow, heading, body, position, metadata) as (
   values
@@ -60,7 +60,7 @@ with dossier as (
     ('voorstellen', 'body', 'Van analyse naar keuze', 'Een voorstel noemt wie handelt, wat het kost en wanneer het toetsbaar wordt.', 'Waarden, instrument, uitvoerder, kosten, termijn en besluitstatus blijven afzonderlijke velden. Zo blijft zichtbaar waar analyse eindigt en een politieke keuze begint.', 60, '{"section_id":"voorstellen","label":"Voorstellen"}'::jsonb),
     ('bronnen', 'body', 'Herkomst en controle', 'Iedere publieke conclusie blijft terug te voeren op een bron.', 'Bronpagina’s blijven intern tot zij zijn gecontroleerd. Gepubliceerde claims verwijzen naar specifieke bronnen en tonen bewijsstatus, geldigheidsperiode en laatste controle.', 70, '{"section_id":"bronnen","label":"Bronnen"}'::jsonb)
 )
-insert into public.content_blocks (
+insert into aegis.content_blocks (
   dossier_id, stable_key, block_type, eyebrow, heading, body, position, metadata
 )
 select dossier.id, blocks.stable_key, blocks.block_type, blocks.eyebrow,
@@ -73,3 +73,30 @@ on conflict (dossier_id, stable_key) do update set
   body = excluded.body,
   position = excluded.position,
   metadata = excluded.metadata;
+
+-- Initial shared links. These do not copy Aegora content; they point to the
+-- existing published topic and rights records.
+with dossier as (
+  select id from aegis.knowledge_objects
+  where object_type = 'dossier' and slug = 'de-uitgang-is-vol'
+), links(topic_id, right_id, relation_type, note) as (
+  values
+    ('wonen'::text, null::text, 'topic_context'::text, 'De woonlaag rondom geblokkeerde uitstroom.'::text),
+    ('zorg', null, 'topic_context', 'De zorglaag rondom behandeling, doorstroom en vervolgplekken.'),
+    ('veiligheid', null, 'topic_context', 'De veiligheidslaag wanneer zorg- en woontekorten escaleren.'),
+    (null, 'politie-taak', 'legal_basis', 'De algemene hulpverlenings- en beschermingstaak van de politie.'),
+    (null, 'wvggz-verplichte-zorg', 'legal_basis', 'De wettelijke grenzen van zorg tegen de wil van een persoon.'),
+    (null, 'patient-informatie-keuze', 'related_protection', 'Recht op informatie, overleg en eigen keuze in behandeling.')
+)
+insert into aegis.aegora_links (
+  aegis_object_id, aegora_topic_id, aegora_right_id, relation_type, status, note
+)
+select dossier.id, links.topic_id, links.right_id, links.relation_type, 'published', links.note
+from dossier cross join links
+where not exists (
+  select 1 from aegis.aegora_links existing
+  where existing.aegis_object_id = dossier.id
+    and existing.aegora_topic_id is not distinct from links.topic_id
+    and existing.aegora_right_id is not distinct from links.right_id
+    and existing.relation_type = links.relation_type
+);

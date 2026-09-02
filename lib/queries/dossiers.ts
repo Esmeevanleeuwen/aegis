@@ -68,7 +68,7 @@ export async function getPublishedDossiers(): Promise<Dossier[]> {
 
   const supabase = createPublicSupabaseClient();
   const { data, error } = await supabase
-    .from("published_dossiers")
+    .from("aegis_published_dossiers")
     .select("*")
     .order("featured", { ascending: false })
     .order("updated_at", { ascending: false });
@@ -83,7 +83,7 @@ export async function getPublishedDossier(slug: string): Promise<DossierDetail |
 
   const supabase = createPublicSupabaseClient();
   const { data: rowData, error: rowError } = await supabase
-    .from("published_dossiers")
+    .from("aegis_published_dossiers")
     .select("*")
     .eq("slug", slug)
     .maybeSingle();
@@ -95,11 +95,11 @@ export async function getPublishedDossier(slug: string): Promise<DossierDetail |
   const [{ data: blockData, error: blockError }, { data: claimData, error: claimError }] =
     await Promise.all([
       supabase
-        .from("content_blocks")
+        .from("aegis_content_blocks")
         .select("stable_key, block_type, eyebrow, heading, body, position, metadata")
         .eq("dossier_id", row.id)
         .order("position"),
-      supabase.from("claims").select("id").eq("dossier_id", row.id),
+      supabase.from("aegis_claims").select("id").eq("dossier_id", row.id),
     ]);
 
   if (blockError) throw new Error(`Dossierinhoud kon niet worden geladen: ${blockError.message}`);
@@ -111,7 +111,7 @@ export async function getPublishedDossier(slug: string): Promise<DossierDetail |
 
   if (claimIds.length) {
     const { data: evidenceData, error: evidenceError } = await supabase
-      .from("knowledge_objects")
+      .from("aegis_knowledge_objects")
       .select("evidence_status")
       .in("id", claimIds);
 

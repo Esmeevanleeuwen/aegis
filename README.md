@@ -25,16 +25,29 @@ Open daarna [http://localhost:3000](http://localhost:3000).
 Zonder Supabase-variabelen gebruikt de website de meegeleverde, gecontroleerde
 voorbeeldinhoud. Daardoor blijft ontwikkeling en deployment altijd mogelijk.
 
-## Supabase aansluiten
+## Gedeeld Supabase-project met Aegora
 
-1. Maak of kies een afzonderlijk Supabase-project voor Aegis.
-2. Kopieer `.env.example` naar `.env.local` en vul de project-URL en publishable key in.
-3. Voer de migratie in `supabase/migrations` uit.
-4. Voer `supabase/seed.sql` uit voor het eerste publieke dossier.
-5. Controleer daarna de security- en performance-advisors van Supabase.
+Aegis gebruikt voorlopig hetzelfde Supabase-project als Aegora, maar alle interne
+Aegis-tabellen staan in het afzonderlijke schema `aegis`. Alleen beveiligde views met
+het voorvoegsel `aegis_` staan in `public`. Daardoor kan de website de bestaande Data
+API gebruiken zonder de interne Aegis-tabellen open te zetten.
+
+1. Kopieer `.env.example` naar `.env.local` en gebruik de URL en publishable key van
+   het gedeelde kennisproject.
+2. Voer de migratie in `supabase/migrations` uit.
+3. Voer `supabase/seed.sql` uit voor het eerste publieke dossier.
+4. Controleer daarna de security- en performance-advisors van Supabase.
+
+De tabel `aegis.aegora_links` vormt de gecontroleerde brug naar onderwerpen, rechten,
+bronnen en routes van Aegora. De publieke view `public.aegis_aegora_connections` toont
+alleen verbindingen die aan beide kanten gepubliceerd zijn.
 
 Gebruik voor de website alleen de publishable key. De secret key is uitsluitend voor
 de lokale importeur en mag nooit in browsercode of GitHub terechtkomen.
+
+Wie de lokale importeur via de Data API gebruikt, moet in de Supabase API-instellingen
+het schema `aegis` toevoegen aan **Exposed schemas**. De gewone website gebruikt alleen
+de beveiligde publieke views en heeft deze extra instelling niet nodig.
 
 ## Alle dossierpagina's importeren
 

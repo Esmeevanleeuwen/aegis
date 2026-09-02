@@ -392,6 +392,7 @@ async function main() {
 
   const supabase = createClient(url, secret, {
     auth: { autoRefreshToken: false, persistSession: false },
+    db: { schema: "aegis" },
   });
 
   for (const document of plan) {
