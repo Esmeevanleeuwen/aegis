@@ -29,15 +29,19 @@ export default function LocalPage() {
           </svg>
         </div>
         <div className="local-list">
-          <p className="eyebrow">Lokale groepen actief</p>
+          <div className="local-list__heading">
+            <p className="eyebrow">Lokale groepen actief</p>
+            <span>{localGroups.length} gebieden</span>
+          </div>
           <h2>Vind Ampara in jouw omgeving.</h2>
           <p>
             Iedere groep gebruikt dezelfde openbare dossiers, maar bepaalt zelf
             welke lokale uitvoering en politieke voorstellen nodig zijn.
           </p>
           <div>
-            {localGroups.map(([name, date]) => (
+            {localGroups.map(([name, date], index) => (
               <div className="local-list__row" key={name}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
                 <strong>{name}</strong>
                 <small>Laatste activiteit · {date}</small>
               </div>

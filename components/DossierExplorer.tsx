@@ -53,7 +53,10 @@ export function DossierExplorer({ dossiers }: { dossiers: Dossier[] }) {
         </div>
       </div>
 
-      <p className="result-count">{visible.length} dossiers gevonden</p>
+      <div className="result-count">
+        <span>Openbare dossiers</span>
+        <strong>{visible.length} gevonden</strong>
+      </div>
       <div className="dossier-list">
         {visible.map((dossier, index) => (
           <Link
@@ -79,6 +82,12 @@ export function DossierExplorer({ dossiers }: { dossiers: Dossier[] }) {
             </span>
           </Link>
         ))}
+        {visible.length === 0 ? (
+          <div className="dossier-empty">
+            <strong>Geen dossier gevonden.</strong>
+            <span>Probeer een andere zoekterm of kies ‘Alles’.</span>
+          </div>
+        ) : null}
       </div>
     </div>
   );

@@ -28,7 +28,7 @@ export default function StandpuntenPage() {
           Bekijk voorstellen <span>→</span>
         </Link>
       </PageIntro>
-      <section className="principles">
+      <section className="principles principles--positions">
         {positions.map(([title, text], index) => (
           <article className="principle" key={title}>
             <span>0{index + 1}</span>

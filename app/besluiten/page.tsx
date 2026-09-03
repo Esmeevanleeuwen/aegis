@@ -17,7 +17,7 @@ export default function DecisionsPage() {
         </p>
       </PageIntro>
       <section className="decision-grid">
-        <div>
+        <div className="decision-grid__summary">
           <p className="eyebrow">Besluit AEG-2026-07</p>
           <h2>Wonen als publieke ondergrens.</h2>
           <p>Aangenomen op 26 juni 2026 door het landelijke ledenberaad.</p>
@@ -39,29 +39,31 @@ export default function DecisionsPage() {
             Volg de uitvoering <span>→</span>
           </Link>
         </div>
-        <div>
+        <div className="decision-grid__details">
           <h3>Aangenomen amendementen</h3>
-          <table className="editorial-table">
-            <tbody>
-              <tr>
-                <td>A01</td>
-                <td>Versterk de rol van huurdersorganisaties.</td>
-                <td>Aangenomen · 812/204</td>
-              </tr>
-              <tr>
-                <td>A02</td>
-                <td>Maak extra middelen voor preventie controleerbaar.</td>
-                <td>Aangenomen · 803/195</td>
-              </tr>
-            </tbody>
-          </table>
-          <h3 style={{ marginTop: "60px" }}>Minderheidsreactie</h3>
+          <div className="table-shell">
+            <table className="editorial-table">
+              <tbody>
+                <tr>
+                  <td>A01</td>
+                  <td>Versterk de rol van huurdersorganisaties.</td>
+                  <td>Aangenomen · 812/204</td>
+                </tr>
+                <tr>
+                  <td>A02</td>
+                  <td>Maak extra middelen voor preventie controleerbaar.</td>
+                  <td>Aangenomen · 803/195</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <h3 className="decision-grid__subheading">Minderheidsreactie</h3>
           <p>
             Een minderheid waarschuwt dat de eerste financieringsfase te veel
             afhankelijk blijft van gemeentelijke draagkracht. Deze reactie blijft
             aan het besluit verbonden en wordt bij de evaluatie opnieuw getoetst.
           </p>
-          <h3 style={{ marginTop: "60px" }}>Auditspoor</h3>
+          <h3 className="decision-grid__subheading">Auditspoor</h3>
           <p>
             Voorstel, bronversies, wijzigingen, belangenverklaringen en
             stemuitslag zijn afzonderlijk terug te vinden.

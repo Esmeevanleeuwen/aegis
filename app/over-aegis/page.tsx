@@ -25,7 +25,7 @@ export default function AboutPage() {
           expliciete keuze, een uitvoerder en publieke verantwoording.
         </p>
       </PageIntro>
-      <section className="principles">
+      <section className="principles principles--about">
         {principles.map(([title, description], index) => (
           <article className="principle" key={title}>
             <span>0{index + 1}</span>

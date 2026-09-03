@@ -22,34 +22,36 @@ export default function ProposalsPage() {
       </PageIntro>
 
       <section className="page-section">
-        <table className="editorial-table">
-          <thead>
-            <tr>
-              <th>Voorstel</th>
-              <th>Onderwerp</th>
-              <th>Fase</th>
-              <th>Laatste wijziging</th>
-            </tr>
-          </thead>
-          <tbody>
-            {proposals.map((proposal) => (
-              <tr key={proposal.title}>
-                <td>
-                  <strong>{proposal.title}</strong>
-                </td>
-                <td>{proposal.theme}</td>
-                <td>
-                  <span className="status">{proposal.phase}</span>
-                </td>
-                <td>{proposal.changed}</td>
+        <div className="table-shell">
+          <table className="editorial-table">
+            <thead>
+              <tr>
+                <th>Voorstel</th>
+                <th>Onderwerp</th>
+                <th>Fase</th>
+                <th>Laatste wijziging</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {proposals.map((proposal) => (
+                <tr key={proposal.title}>
+                  <td>
+                    <strong>{proposal.title}</strong>
+                  </td>
+                  <td>{proposal.theme}</td>
+                  <td>
+                    <span className="status">{proposal.phase}</span>
+                  </td>
+                  <td>{proposal.changed}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <section className="proposal-feature">
-        <div>
+        <div className="proposal-feature__main">
           <p className="eyebrow">Uitgelicht voorstel</p>
           <h1>Wonen als voorwaarde voor zorguitstroom.</h1>
           <dl className="fact-list">
@@ -71,7 +73,7 @@ export default function ProposalsPage() {
             </div>
           </dl>
         </div>
-        <div>
+        <div className="proposal-feature__phase">
           <p className="eyebrow">Fase</p>
           <h3>In ledenbehandeling</h3>
           <ol className="timeline">
