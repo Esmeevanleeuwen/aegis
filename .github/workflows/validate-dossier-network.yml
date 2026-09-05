@@ -13,14 +13,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-      - name: Install dependencies
-        run: npm ci
-      - name: Build
-        run: npm run build
+      - name: Build public branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch dossier-seo-network https://github.com/Esmeevanleeuwen/aegis.git app
+          cd app
+          node --version
+          npm --version
+          npm ci
+          npm run build
