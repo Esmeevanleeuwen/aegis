@@ -4,16 +4,16 @@ import type { Metadata } from "next";
 import {
   absoluteUrl,
   isPreview,
-  platformName,
   partnerName,
   partnerUrl,
+  platformName,
 } from "@/lib/dossier-platforms";
 import {
-  dossierPath,
   chapterPath,
+  dossierPath,
   topicSlug,
-  type DossierSummary,
   type DossierChapter,
+  type DossierSummary,
 } from "@/lib/dossier-core";
 import { partnerDossiers } from "@/lib/dossier-partner";
 import styles from "./DossierUI.module.css";
@@ -44,13 +44,7 @@ export function pageMetadata(
 }
 
 export function Shell({ children }: { children: ReactNode }) {
-  return (
-    <div
-      className={`${styles.shell} ${platformName === "Ampara" ? styles.ampara : ""}`}
-    >
-      {children}
-    </div>
-  );
+  return <div className={styles.shell}>{children}</div>;
 }
 
 export function Breadcrumbs({
@@ -58,7 +52,7 @@ export function Breadcrumbs({
 }: {
   items: { title: string; href: string }[];
 }) {
-  const crumbs = [{ title: platformName, href: "/" }, ...items];
+  const crumbs = [{ title: "AMPARA", href: "/" }, ...items];
 
   return (
     <nav className={styles.breadcrumb} aria-label="Broodkruimelpad">
@@ -80,35 +74,19 @@ export function Breadcrumbs({
 
 export function Cards({ items }: { items: DossierSummary[] }) {
   return (
-    <div className={`${styles.grid} ${styles.cardGrid}`}>
+    <div className={styles.agenda}>
       {items.map((item, index) => (
-        <Link
-          key={item.slug}
-          href={dossierPath(item.slug)}
-          className={styles.card}
-        >
-          <div className={styles.cardTop}>
-            <span className={styles.cardNumber}>
-              {String(index + 1).padStart(2, "0")}
-            </span>
-            <small className={styles.cardStatus}>{item.status}</small>
+        <Link key={item.slug} href={dossierPath(item.slug)} className={styles.agendaRow}>
+          <span className={styles.agendaNumber}>{String(index + 1).padStart(2, "0")}</span>
+          <div className={styles.agendaBody}>
+            <small>{item.status}</small>
+            <h3>{item.title}</h3>
+            <p>{item.description}</p>
           </div>
-
-          <h3>{item.title}</h3>
-          <p>{item.description}</p>
-
-          <div className={styles.cardFooter}>
-            <span className={styles.cardThemes}>
-              {item.themes.length ? item.themes.join(" · ") : "Dossier"}
-            </span>
-            <span className={styles.cardArrow} aria-hidden="true">
-              ↗
-            </span>
+          <div className={styles.agendaMeta}>
+            <span>{item.themes.join(" / ") || "Publiek dossier"}</span>
+            <b aria-hidden="true">→</b>
           </div>
-
-          <span className={styles.cardAction}>
-            Lees het dossier {item.title}
-          </span>
         </Link>
       ))}
     </div>
@@ -116,16 +94,14 @@ export function Cards({ items }: { items: DossierSummary[] }) {
 }
 
 export function Topics({ themes }: { themes: string[] }) {
-  const topics = [
-    ...new Map(themes.map((title) => [topicSlug(title), title])).entries(),
-  ].filter(([slug]) => slug);
+  const topics = [...new Map(
+    themes.map((title) => [topicSlug(title), title]),
+  ).entries()].filter(([slug]) => slug);
 
   return (
     <nav className={styles.topics} aria-label="Thema’s in dit dossier">
       {topics.map(([slug, title]) => (
-        <Link href={`/themas/${slug}`} key={slug}>
-          {title}
-        </Link>
+        <Link href={`/themas/${slug}`} key={slug}>{title}</Link>
       ))}
     </nav>
   );
@@ -142,86 +118,63 @@ export function ChapterNav({
 }) {
   return (
     <details className={styles.toc} open>
-      <summary>Inhoud van dit dossier</summary>
+      <summary>Route door dit dossier</summary>
       <nav aria-label="Dossierhoofdstukken">
         <Link href={dossierPath(slug)}>
           <span className={styles.tocIndex}>00</span>
-          <span>Overzicht van het dossier</span>
+          <span>Politiek overzicht</span>
         </Link>
-
         {chapters.map((item, index) => (
           <Link
             key={item.id}
             href={chapterPath(slug, item.id)}
             aria-current={item.id === current ? "page" : undefined}
           >
-            <span className={styles.tocIndex}>
-              {String(index + 1).padStart(2, "0")}
-            </span>
+            <span className={styles.tocIndex}>{String(index + 1).padStart(2, "0")}</span>
             <span>{item.title}</span>
           </Link>
         ))}
-
+        <Link href={`${dossierPath(slug)}#politieke-afweging`}>
+          <span className={styles.tocIndex}>K</span>
+          <span>Keuze en vervolgstappen</span>
+        </Link>
         <Link href={`${dossierPath(slug)}#bronnen`}>
           <span className={styles.tocIndex}>B</span>
-          <span>Bronnen en onderbouwing</span>
+          <span>Gedeelde bronnen</span>
         </Link>
       </nav>
     </details>
   );
 }
 
-export async function PartnerLinks({
-  dossier,
-}: {
-  dossier: DossierSummary;
-}) {
+export async function PartnerLinks({ dossier }: { dossier: DossierSummary }) {
   const items = await partnerDossiers(dossier);
-  const isMeridian = platformName === "Meridian";
 
   return (
-    <section
-      className={`${styles.section} ${styles.partnerSection}`}
-      aria-label={`Verbinding met ${partnerName}`}
-    >
-      <div className={styles.partnerIntro}>
-        <p className={styles.eyebrow}>
-          {partnerName} · {isMeridian ? "politieke afweging" : "onderzoek en context"}
-        </p>
-        <h2>
-          {isMeridian
-            ? "Waar onderzoek en keuzes elkaar raken."
-            : "Terug naar het onderzoek."}
-        </h2>
+    <section className={styles.researchBridge} aria-label={`Verbinding met ${partnerName}`}>
+      <div>
+        <span className={styles.bridgeCode}>ONDERLIGGEND ONDERZOEK</span>
+        <h2>Controleer de analyse bij Meridian.</h2>
         <p>
-          Meridian en Ampara zijn verbonden platforms met verschillende rollen.
-          Een link is geen bewijs of instemming: onderzoek, ervaringen en
-          politieke keuzes blijven onderscheiden.
+          Ampara maakt politieke keuzes, maar bezit de feiten niet. Dezelfde dossierkern
+          kan bij Meridian zelfstandig worden onderzocht, aangevuld en tegengesproken.
         </p>
       </div>
-
-      {items.length ? (
-        <div className={styles.grid}>
-          {items.map((item) => (
-            <a
-              className={styles.card}
-              key={item.slug}
-              href={`${partnerUrl}${dossierPath(item.slug)}`}
-            >
-              <small>{item.reason}</small>
-              <h3>{item.title}</h3>
-              <p>{item.description}</p>
-              <span>
-                {isMeridian ? "Lees bij Ampara" : "Lees bij Meridian"} →
-              </span>
-            </a>
-          ))}
-        </div>
-      ) : (
-        <a className={styles.partnerFallback} href={`${partnerUrl}/dossiers`}>
-          Bekijk de dossierbibliotheek van {partnerName} →
-        </a>
-      )}
+      <div className={styles.bridgeLinks}>
+        {items.length ? items.map((item) => (
+          <a key={item.slug} href={`${partnerUrl}${dossierPath(item.slug)}`}>
+            <span>{item.reason}</span>
+            <strong>{item.title}</strong>
+            <b>Open het onderzoek ↗</b>
+          </a>
+        )) : (
+          <a href={`${partnerUrl}/dossiers`}>
+            <span>Onafhankelijke kennislaag</span>
+            <strong>Dossiers bij Meridian</strong>
+            <b>Ga naar Meridian ↗</b>
+          </a>
+        )}
+      </div>
     </section>
   );
 }

@@ -1,71 +1,405 @@
 import { cache } from "react";
-import { getPublishedDossiers, getPublishedDossier, getPublishedDossierDocuments } from "@/lib/queries/dossiers";
+import {
+  getPublishedDossiers,
+  getPublishedDossier,
+  getPublishedDossierDocuments,
+} from "@/lib/queries/dossiers";
 import { fallbackDossierDetails } from "@/lib/fallback-dossiers";
 import { hasSupabaseConfig } from "@/lib/supabase/public-client";
-import { uniqueChapters, type Dossier, type DossierSummary, type SourceDocument } from "@/lib/dossier-core";
+import {
+  uniqueChapters,
+  type Dossier,
+  type DossierChapter,
+  type DossierDocumentSummary,
+  type DossierLink,
+  type DossierPlatform,
+  type DossierSummary,
+  type SharedClaim,
+  type SourceDocument,
+} from "@/lib/dossier-core";
+
+const PLATFORM: DossierPlatform = "ampara";
+const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+function object(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function text(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+
+function number(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function strings(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+    : [];
+}
+
+function endpoint() {
+  const explicit = process.env.DOSSIER_CORE_API_URL?.trim();
+  if (explicit) return explicit.replace(/\/$/, "");
+
+  const projectUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  return projectUrl ? `${projectUrl.replace(/\/$/, "")}/functions/v1/dossier-core` : "";
+}
+
+function apiKey() {
+  return (
+    process.env.DOSSIER_CORE_API_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+    ""
+  ).trim();
+}
+
+async function requestCore(params: Record<string, string>, tag: string): Promise<Record<string, unknown> | null> {
+  const url = endpoint();
+  const key = apiKey();
+  if (!url || !key) return null;
+
+  try {
+    const query = new URLSearchParams({ platform: PLATFORM, ...params });
+    const response = await fetch(`${url}?${query.toString()}`, {
+      headers: {
+        Authorization: `Bearer ${key}`,
+        apikey: key,
+        Accept: "application/json",
+      },
+      next: {
+        revalidate: 300,
+        tags: ["dossier-core", tag],
+      },
+    });
+
+    if (!response.ok) return null;
+    const payload: unknown = await response.json();
+    return object(payload);
+  } catch {
+    return null;
+  }
+}
+
+function summaryFromApi(value: unknown): DossierSummary | null {
+  const item = object(value);
+  const core = object(item.core);
+  const view = object(item.view);
+  const slug = text(core.slug);
+  const title = text(view.title) || text(core.title);
+
+  if (!SLUG_PATTERN.test(slug) || !title) return null;
+
+  return {
+    id: text(core.id) || undefined,
+    slug,
+    coreTitle: text(core.title) || title,
+    title,
+    description: text(view.summary) || text(core.summary),
+    themes: strings(core.themes),
+    status: text(view.status_label) || text(core.shared_status) || "Publiek dossier",
+    indexable: view.indexable === true,
+    updatedAt: text(view.updated_at) || text(core.updated_at) || undefined,
+    sourceOwner: text(core.source_owner) || undefined,
+    availableOn: strings(item.available_on)
+      .filter((platform): platform is DossierPlatform => platform === "meridian" || platform === "ampara"),
+    presentationState: text(view.state) || undefined,
+  };
+}
+
+function chapterFromApi(value: unknown, index: number): DossierChapter | null {
+  const row = object(value);
+  const id = text(row.id) || `hoofdstuk-${index + 1}`;
+  const title = text(row.title) || text(row.heading);
+  const paragraphs = strings(row.body).length
+    ? strings(row.body)
+    : strings(row.paragraphs);
+
+  if (!SLUG_PATTERN.test(id) || !title || !paragraphs.length) return null;
+
+  return {
+    id,
+    title,
+    paragraphs,
+    points: strings(row.points),
+    eyebrow: text(row.eyebrow) || undefined,
+    kind: text(row.type) || undefined,
+    position: number(row.position) || index + 1,
+  };
+}
+
+function articleFromApi(value: unknown): DossierLink | null {
+  const row = object(value);
+  const title = text(row.title);
+  const href = text(row.href);
+  if (!title || !href.startsWith("/")) return null;
+  return {
+    title,
+    href,
+    description: text(row.description),
+  };
+}
+
+function documentFromApi(value: unknown): DossierDocumentSummary | null {
+  const row = object(value);
+  const slug = text(row.document_slug) || text(row.slug);
+  const title = text(row.title);
+  if (!SLUG_PATTERN.test(slug) || !title) return null;
+
+  return {
+    id: text(row.source_document_id) || text(row.id) || slug,
+    slug,
+    title,
+    description: text(row.description) || null,
+    role: text(row.role) || undefined,
+    pageCount: number(row.page_count),
+    sectionCount: number(row.section_count),
+  };
+}
+
+function claimFromApi(value: unknown): SharedClaim | null {
+  const row = object(value);
+  const statement = text(row.statement);
+  if (!statement) return null;
+  return {
+    id: text(row.id) || statement,
+    statement,
+    validFrom: text(row.valid_from) || undefined,
+    validTo: text(row.valid_to) || undefined,
+  };
+}
+
+async function fallbackDossiers(): Promise<DossierSummary[]> {
+  try {
+    const rows = await getPublishedDossiers();
+    return rows.map((row) => ({
+      slug: row.slug,
+      title: row.title,
+      description: row.outcome,
+      themes: row.themes,
+      status: hasSupabaseConfig() ? "Openbaar dossier" : "Voorbeeld · geen vastgesteld onderzoek",
+      indexable: hasSupabaseConfig(),
+    }));
+  } catch {
+    return [];
+  }
+}
+
+async function fallbackDossier(slug: string): Promise<Dossier | undefined> {
+  try {
+    const row = await getPublishedDossier(slug);
+    if (!row) return undefined;
+    const live = row.dataOrigin === "supabase";
+    const fallbackSections = fallbackDossierDetails.get(slug)?.sections;
+    const sections = live && row.sections === fallbackSections ? [] : row.sections;
+
+    return {
+      slug: row.slug,
+      title: row.title,
+      description: row.description,
+      themes: row.themes,
+      status: live ? "Openbaar dossier" : "Voorbeeld · geen vastgesteld onderzoek",
+      indexable: live,
+      question: row.description,
+      introduction: row.description,
+      method: "Lees eerst de dossierinhoud. Controleer daarna de brondocumenten en onderscheid de onderbouwing van de politieke afweging.",
+      boundaries: live
+        ? "Publicatie is geen feitencontrole. Onderzoek, politieke keuze en uitvoering blijven afzonderlijk zichtbaar."
+        : "Dit is voorbeeldinhoud voor de dossierstructuur.",
+      chapters: uniqueChapters([
+        ...sections.map((section, index) => ({
+          id: section.id,
+          title: section.heading || section.label,
+          paragraphs: section.paragraphs,
+          eyebrow: section.eyebrow,
+          position: index + 1,
+        })),
+        ...(row.chain.length ? [{
+          id: "keten",
+          title: "De beschreven samenhang",
+          paragraphs: row.chain.map((step) => `${step.number}. ${step.title} — ${step.description}`),
+          kind: "causal-chain",
+          position: 999,
+        }] : []),
+      ]),
+      articles: [],
+      evidence: live ? row.evidence : undefined,
+    };
+  } catch {
+    return undefined;
+  }
+}
 
 export const getDossiers = cache(async (): Promise<DossierSummary[]> => {
-  const rows = await getPublishedDossiers();
-  return rows.map((row) => ({
-    slug: row.slug,
-    title: row.title,
-    description: row.outcome,
-    themes: row.themes,
-    status: hasSupabaseConfig() ? "Openbaar dossier" : "Voorbeeld · geen vastgesteld onderzoek",
-    indexable: hasSupabaseConfig(),
-  }));
+  const payload = await requestCore({}, "dossier-catalogue:ampara");
+  const items = Array.isArray(payload?.items) ? payload.items : [];
+  const dossiers = items
+    .map(summaryFromApi)
+    .filter((item): item is DossierSummary => Boolean(item));
+
+  return dossiers.length ? dossiers : fallbackDossiers();
 });
 
 export const getDossier = cache(async (slug: string): Promise<Dossier | undefined> => {
-  const row = await getPublishedDossier(slug);
-  if (!row) return;
-  const live = row.dataOrigin === "supabase";
-  const sections = live && row.sections === fallbackDossierDetails.get(slug)?.sections ? [] : row.sections;
+  if (!SLUG_PATTERN.test(slug)) return undefined;
+
+  const payload = await requestCore({ slug }, `dossier:${slug}:ampara`);
+  const bundle = object(payload?.dossier);
+  const core = object(bundle.core);
+  const view = object(bundle.view);
+  const shared = object(bundle.shared);
+  const summary = summaryFromApi({ core, view, available_on: bundle.available_on });
+
+  if (!summary) return fallbackDossier(slug);
+
+  const chapters = uniqueChapters(
+    (Array.isArray(view.sections) ? view.sections : [])
+      .map(chapterFromApi)
+      .filter((item): item is DossierChapter => Boolean(item)),
+  );
+
+  const articles = (Array.isArray(view.article_links) ? view.article_links : [])
+    .map(articleFromApi)
+    .filter((item): item is DossierLink => Boolean(item));
+
+  const documents = (Array.isArray(shared.documents) ? shared.documents : [])
+    .map(documentFromApi)
+    .filter((item): item is DossierDocumentSummary => Boolean(item));
+
+  const claims = (Array.isArray(shared.claims) ? shared.claims : [])
+    .map(claimFromApi)
+    .filter((item): item is SharedClaim => Boolean(item));
+
   return {
-    slug: row.slug,
-    title: row.title,
-    description: row.description,
-    themes: row.themes,
-    status: live ? "Openbaar dossier" : "Voorbeeld · geen vastgesteld onderzoek",
-    indexable: live,
-    question: row.description,
-    method: "Lees eerst de dossierinhoud. Controleer daarna de brondocumenten en onderscheid de onderbouwing van de politieke afweging.",
-    boundaries: live ? "Publicatie is geen feitencontrole. De oorspronkelijke tekst kan interpretaties, onzekerheden en standpunten bevatten. Een gedeeld thema is geen bewijs voor een oorzakelijk verband." : "Dit is voorbeeldinhoud voor de dossierstructuur. Getallen, verklaringen en voorstellen zijn hier niet als gecontroleerd onderzoek gepubliceerd.",
-    chapters: uniqueChapters([
-      ...sections.map((section) => ({ id: section.id, title: section.heading || section.label, paragraphs: section.paragraphs })),
-      ...(row.chain.length ? [{ id: "keten", title: "De beschreven samenhang", paragraphs: row.chain.map((step) => `${step.number}. ${step.title} — ${step.description}`) }] : []),
-    ]),
-    articles: [],
-    evidence: live ? row.evidence : undefined,
+    ...summary,
+    question: text(view.question) || summary.description,
+    introduction: text(view.introduction) || summary.description,
+    method: text(view.methodology) || "Onderzoek, waarden, voorstel, besluit en uitvoering blijven afzonderlijke stappen.",
+    boundaries: text(view.boundaries) || "De politieke verwerking is geen vervanging voor onafhankelijk onderzoek.",
+    chapters,
+    articles,
+    documents,
+    claims,
+    presentation: object(view.presentation),
   };
 });
 
 export const getSourcesForDossier = cache(async (slug: string): Promise<SourceDocument[]> => {
   const dossier = await getDossier(slug);
-  if (!dossier?.indexable) return [];
-  const documents = await getPublishedDossierDocuments(slug);
-  return documents.map((document) => ({ id: document.id, slug: document.slug, title: document.title, description: document.description, dossiers: [dossier], sections: document.sections, pages: document.pages }));
+  if (!dossier) return [];
+
+  if (dossier.documents?.length) {
+    return dossier.documents.map((document) => ({
+      id: document.id,
+      slug: document.slug,
+      title: document.title,
+      description: document.description,
+      role: document.role,
+      pageCount: document.pageCount,
+      sectionCount: document.sectionCount,
+      dossiers: [dossier],
+      sections: [],
+      pages: [],
+    }));
+  }
+
+  try {
+    const documents = await getPublishedDossierDocuments(slug);
+    return documents.map((document) => ({
+      id: document.id,
+      slug: document.slug,
+      title: document.title,
+      description: document.description,
+      pageCount: document.pageCount,
+      sectionCount: document.sectionCount,
+      dossiers: [dossier],
+      sections: document.sections,
+      pages: document.pages,
+    }));
+  } catch {
+    return [];
+  }
 });
 
 export const getSources = cache(async (): Promise<SourceDocument[]> => {
-  const dossiers = (await getDossiers()).filter((dossier) => dossier.indexable);
-  const lists = await Promise.all(dossiers.map((dossier) => getSourcesForDossier(dossier.slug)));
-  const byId = new Map<string, SourceDocument>();
-  for (const document of lists.flat()) {
-    const existing = byId.get(document.id);
-    if (existing) {
-      for (const dossier of document.dossiers) if (!existing.dossiers.some((item) => item.slug === dossier.slug)) existing.dossiers.push(dossier);
-    } else {
-      byId.set(document.id, { ...document, dossiers: [...document.dossiers] });
+  const dossiers = await getDossiers();
+  const details = await Promise.all(dossiers.map((dossier) => getDossier(dossier.slug)));
+  const documents = new Map<string, SourceDocument>();
+
+  for (const dossier of details) {
+    if (!dossier) continue;
+    for (const item of dossier.documents ?? []) {
+      const existing = documents.get(item.slug);
+      if (existing) {
+        if (!existing.dossiers.some((linked) => linked.slug === dossier.slug)) {
+          existing.dossiers.push(dossier);
+        }
+        continue;
+      }
+      documents.set(item.slug, {
+        id: item.id,
+        slug: item.slug,
+        title: item.title,
+        description: item.description,
+        role: item.role,
+        pageCount: item.pageCount,
+        sectionCount: item.sectionCount,
+        dossiers: [dossier],
+        sections: [],
+        pages: [],
+      });
     }
   }
-  const result = [...byId.values()];
-  const slugs = new Set<string>();
-  for (const document of result) {
-    if (slugs.has(document.slug)) throw new Error("Twee openbare documenten gebruiken dezelfde bron-URL.");
-    slugs.add(document.slug);
-  }
-  return result.sort((a, b) => a.title.localeCompare(b.title, "nl"));
+
+  return [...documents.values()].sort((a, b) => a.title.localeCompare(b.title, "nl"));
 });
 
-export const getSource = cache(async (slug: string) => (await getSources()).find((document) => document.slug === slug));
+export const getSource = cache(async (slug: string): Promise<SourceDocument | undefined> => {
+  if (!SLUG_PATTERN.test(slug)) return undefined;
+
+  const payload = await requestCore({ document: slug }, `document:${slug}:ampara`);
+  const document = object(payload?.document);
+  if (!text(document.slug) || !text(document.title)) return undefined;
+
+  const dossiers = (Array.isArray(document.dossiers) ? document.dossiers : [])
+    .map(summaryFromApi)
+    .filter((item): item is DossierSummary => Boolean(item));
+
+  return {
+    id: text(document.source_document_id) || slug,
+    slug: text(document.slug),
+    title: text(document.title),
+    description: text(document.description) || null,
+    importedAt: text(document.imported_at) || undefined,
+    pageCount: number(document.page_count),
+    sectionCount: number(document.section_count),
+    dossiers,
+    sections: (Array.isArray(document.sections) ? document.sections : []).flatMap((value) => {
+      const row = object(value);
+      const title = text(row.title);
+      const pageNumber = number(row.page_number);
+      if (!title || pageNumber < 1) return [];
+      return [{
+        id: text(row.id) || `${slug}-${pageNumber}-${title}`,
+        title,
+        pageNumber,
+        level: Math.max(1, number(row.level)),
+      }];
+    }),
+    pages: (Array.isArray(document.pages) ? document.pages : []).flatMap((value) => {
+      const row = object(value);
+      const pageNumber = number(row.page_number);
+      if (pageNumber < 1) return [];
+      return [{
+        id: text(row.id) || `${slug}-${pageNumber}`,
+        pageNumber,
+        text: text(row.extracted_text),
+        reviewStatus: text(row.review_status),
+      }];
+    }),
+  };
+});
