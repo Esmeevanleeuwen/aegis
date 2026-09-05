@@ -1,29 +1,37 @@
-import type { Metadata } from "next";
-import { DossierExplorer } from "@/components/DossierExplorer";
-import { PageIntro } from "@/components/PageIntro";
-import { getPublishedDossiers } from "@/lib/queries/dossiers";
+import Link from "next/link";
+import { getDossiers } from "@/lib/dossier-network";
+import { getTopics } from "@/lib/dossier-core";
+import { platformName } from "@/lib/dossier-platforms";
+import { Shell, Breadcrumbs, Cards, styles, pageMetadata } from "@/components/dossiers/DossierUI";
 
-export const metadata: Metadata = {
-  title: "Dossiers",
-  description:
-    "Onderzoek waar systemen vastlopen en welke gevolgen daardoor worden verplaatst.",
-};
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata() {
+  const dossiers = await getDossiers();
+  return pageMetadata("Dossiers", "Doorlopende dossiers met hoofdstukken, bronnen en verwante onderwerpen.", "/dossiers", dossiers.some((dossier) => dossier.indexable));
+}
 
 export default async function DossiersPage() {
-  const dossiers = await getPublishedDossiers();
+  const dossiers = await getDossiers();
+  const topics = getTopics(dossiers);
 
   return (
-    <>
-      <PageIntro eyebrow="Publieke kennis" title="Waar systemen vastlopen.">
-        <p>
-          Dossiers beginnen bij een concrete menselijke uitkomst. Daarna worden
-          oorzaken, organisaties, rechten, cijfers en politieke mogelijkheden
-          met elkaar verbonden.
-        </p>
-      </PageIntro>
-      <section className="page-section">
-        <DossierExplorer dossiers={dossiers} />
+    <Shell>
+      <Breadcrumbs items={[{ title: "Dossiers", href: "/dossiers" }]} />
+      <header className={styles.hero}>
+        <p className={styles.eyebrow}>{platformName} · dossierbibliotheek</p>
+        <h1>Niet het losse verhaal. Het grotere verband.</h1>
+        <p>Lees de onderbouwing van maatschappelijke vraagstukken en zie waar onderzoek overgaat in een politieke afweging.</p>
+      </header>
+      <nav className={styles.topics} aria-label="Dossiers per thema">
+        {topics.map((topic) => <Link key={topic.slug} href={`/themas/${topic.slug}`}>{topic.title} ({topic.dossiers.length})</Link>)}
+      </nav>
+      <Cards items={dossiers} />
+      <section className={styles.section}>
+        <h2>Zelf de onderbouwing volgen.</h2>
+        <p>Elk dossier heeft een eigen inhoudsopgave. Open vanuit een hoofdstuk het dossieroverzicht, de brondocumenten of een verwant onderwerp.</p>
+        <Link href="/bronnen">Bekijk de bronbibliotheek →</Link>
       </section>
-    </>
+    </Shell>
   );
 }

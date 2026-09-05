@@ -1,136 +1,94 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import DocumentReader from "@/components/DocumentReader";
-import { SystemTrace } from "@/components/SystemTrace";
-import { dossiers } from "@/lib/site-data";
-import { getPublishedDossier, getPublishedDossierDocuments } from "@/lib/queries/dossiers";
+import { getDossiers, getDossier, getSourcesForDossier } from "@/lib/dossier-network";
+import { dossierPath, chapterPath, sourcePath, relatedDossiers } from "@/lib/dossier-core";
+import { Shell, Breadcrumbs, Topics, PartnerLinks, styles, pageMetadata } from "@/components/dossiers/DossierUI";
 
-type DossierPageProps = {
-  params: Promise<{ slug: string }>;
-};
+export const dynamic = "force-dynamic";
+type Props = { params: Promise<{ slug: string }> };
 
-export function generateStaticParams() {
-  return dossiers.map(({ slug }) => ({ slug }));
+export async function generateMetadata({ params }: Props) {
+  const { slug } = await params;
+  const dossier = await getDossier(slug);
+  return dossier ? pageMetadata(dossier.title, dossier.description, dossierPath(slug), dossier.indexable) : { title: "Dossier niet gevonden", robots: { index: false } };
 }
 
-export async function generateMetadata({ params }: DossierPageProps): Promise<Metadata> {
+export default async function DossierPage({ params }: Props) {
   const { slug } = await params;
-  const dossier = await getPublishedDossier(slug);
-
-  if (!dossier) return { title: "Dossier niet gevonden" };
-  return { title: dossier.title, description: dossier.description };
-}
-
-export default async function DossierPage({ params }: DossierPageProps) {
-  const { slug } = await params;
-  const [dossier, documents] = await Promise.all([
-    getPublishedDossier(slug),
-    getPublishedDossierDocuments(slug),
-  ]);
-
+  const dossier = await getDossier(slug);
   if (!dossier) notFound();
 
-  const tabs = [
-    { id: "overzicht", label: "Overzicht" },
-    ...(dossier.chain.length ? [{ id: "keten", label: "Keten" }] : []),
-    ...dossier.sections
-      .filter(({ id }) => id !== "overzicht")
-      .map(({ id, label }) => ({ id, label })),
-    ...(documents.length ? [{ id: "documenten", label: "Documenten" }] : []),
-  ];
+  const [sources, allDossiers] = await Promise.all([getSourcesForDossier(slug), getDossiers()]);
+  const related = relatedDossiers(dossier, allDossiers);
 
   return (
-    <>
-      <section className="dossier-hero">
-        <div className="dossier-hero__copy">
-          <p className="eyebrow">{dossier.eyebrow}</p>
-          <h1>{dossier.title}.</h1>
-          <p>{dossier.description}</p>
-          <div className="dossier-hero__meta">
-            <span>{dossier.themes.join(" · ")}</span>
-            <span>Gecontroleerd {dossier.checked}</span>
+    <Shell>
+      <Breadcrumbs items={[{ title: "Dossiers", href: "/dossiers" }, { title: dossier.title, href: dossierPath(slug) }]} />
+      <header className={styles.hero}>
+        <p className={styles.eyebrow}>{dossier.status}</p>
+        <h1>{dossier.title}</h1>
+        <p>{dossier.description}</p>
+        <Topics themes={dossier.themes} />
+      </header>
+
+      <div className={styles.notice}>{dossier.boundaries}</div>
+
+      <section className={styles.section} id="overzicht">
+        <p className={styles.eyebrow}>Begin hier</p>
+        <h2>Van onderbouwing naar afweging.</h2>
+        <p>{dossier.method}</p>
+        {dossier.evidence && (
+          <div className={styles.stats}>
+            <span><strong>{dossier.evidence.established}</strong> vastgesteld</span>
+            <span><strong>{dossier.evidence.disputed}</strong> betwist</span>
+            <span><strong>{dossier.evidence.unknown}</strong> onbekend</span>
           </div>
-          <Link className="text-link" href={dossier.chain.length ? "#keten" : `#${tabs[0]?.id}`}>
-            Lees het dossier <span>↓</span>
-          </Link>
-        </div>
-        <div className="photo photo--institution dossier-hero__photo" role="img" aria-label="Publieke institutionele ruimte">
-          <span className="dossier-hero__index" aria-hidden="true">AMPARA · DOSSIER</span>
-          <SystemTrace labels={["Signaal", "Patroon", "Keuze", "Uitvoering"]} />
-        </div>
+        )}
       </section>
 
-      <nav className="local-tabs" aria-label="Onderdelen van dit dossier">
-        {tabs.map((tab) => (
-          <a href={`#${tab.id}`} key={tab.id}>{tab.label}</a>
-        ))}
-      </nav>
-
-      <section className="status-grid" id="overzicht" aria-label="Bewijsstatus">
-        <div className="status-grid__intro">
-          <small>In één oogopslag</small>
-          <strong>Wat weten we?</strong>
-        </div>
-        <div className="status-block">
-          <small>Vastgesteld</small>
-          <strong>{dossier.evidence.established}</strong>
-          <span>bevindingen met controleerbare onderbouwing</span>
-        </div>
-        <div className="status-block">
-          <small>Betwist</small>
-          <strong>{dossier.evidence.disputed}</strong>
-          <span>bevindingen waar bronnen elkaar tegenspreken</span>
-        </div>
-        <div className="status-block">
-          <small>Onbekend</small>
-          <strong>{dossier.evidence.unknown}</strong>
-          <span>vragen waarvoor nog informatie ontbreekt</span>
-        </div>
-      </section>
-
-      {dossier.chain.length > 0 && (
-        <section className="causal-section" id="keten">
-          <p className="eyebrow">De causale keten</p>
-          <h2 className="section-title">Het probleem stopt niet bij de voordeur.</h2>
-          <div className="causal-chain">
-            {dossier.chain.map((step) => (
-              <article className="causal-node" key={step.number}>
-                <span>{step.number}</span>
-                <h3>{step.title}</h3>
-                <p>{step.description}</p>
-              </article>
+      <section className={styles.section} id="hoofdstukken">
+        <h2>Lees het dossier stap voor stap.</h2>
+        {dossier.chapters.length ? (
+          <div className={styles.grid}>
+            {dossier.chapters.map((chapter, index) => (
+              <Link className={styles.card} key={chapter.id} href={chapterPath(slug, chapter.id)}>
+                <small>Hoofdstuk {String(index + 1).padStart(2, "0")}</small>
+                <h3>{chapter.title}</h3>
+                <p>{chapter.paragraphs[0]?.slice(0, 180)}{(chapter.paragraphs[0]?.length ?? 0) > 180 ? "…" : ""}</p>
+                <span>Lees {chapter.title} →</span>
+              </Link>
             ))}
           </div>
+        ) : <p>Er zijn nog geen afzonderlijke hoofdstukken gepubliceerd. De beschikbare oorspronkelijke documenten staan hieronder.</p>}
+      </section>
+
+      <section className={styles.section} id="bronnen">
+        <h2>Controleer de oorspronkelijke bronnen.</h2>
+        {sources.length > 0 && <div className={styles.grid}>{sources.map((source) => <Link className={styles.card} key={source.id} href={sourcePath(source.slug)}><small>Volledig brondocument · {source.pages.length} bronpagina’s</small><h3>{source.title}</h3><p>{source.description}</p><span>Lees {source.title} met inhoudsopgave →</span></Link>)}</div>}
+        {!sources.length && <p>Er zijn nog geen openbare brondocumenten aan dit dossier gekoppeld. Dat is geen bewijs dat een bewering is vastgesteld.</p>}
+      </section>
+
+      <section className={styles.section} id="politieke-afweging">
+        <p className={styles.eyebrow}>Politieke keuze · apart van de feiten</p>
+        <h2>Wat wil Ampara veranderen?</h2>
+        <p>Een dossier is niet automatisch een aangenomen voorstel. Bekijk standpunten, voorstellen, besluiten en uitvoering afzonderlijk.</p>
+        <nav className={styles.topics} aria-label="Politieke vervolgroutes">
+          <Link href="/standpunten">Standpunten</Link>
+          <Link href="/voorstellen">Voorstellen</Link>
+          <Link href="/besluiten">Besluiten</Link>
+          <Link href="/uitvoering">Uitvoering</Link>
+        </nav>
+      </section>
+
+      {related.length > 0 && (
+        <section className={styles.section}>
+          <h2>Waarom deze dossiers samenhangen.</h2>
+          <div className={styles.grid}>{related.map((item) => <Link className={styles.card} key={item.slug} href={dossierPath(item.slug)}><small>Gedeeld thema: {item.shared.join(", ")}</small><h3>{item.title}</h3><p>{item.description}</p><span>Vergelijk de dossiers →</span></Link>)}</div>
+          <p>Deze verbindingen zijn thematisch, niet automatisch oorzakelijk.</p>
         </section>
       )}
 
-      <div className="dossier-content">
-        {dossier.sections.map((section) => (
-          <section className="dossier-section" id={section.id} key={section.id}>
-            <div>
-              <p className="eyebrow">{section.eyebrow}</p>
-              <span className="dossier-section__index">{section.label}</span>
-            </div>
-            <div>
-              <h2>{section.heading}</h2>
-              {section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
-            </div>
-          </section>
-        ))}
-      </div>
-
-      <DocumentReader documents={documents} />
-
-      <section className="knowledge-links" aria-label="Vervolg binnen Ampara">
-        {dossier.knowledgeLinks.map((item) => (
-          <Link className="knowledge-link" href={item.href} key={item.platform}>
-            <small>{item.platform} · {item.role}</small>
-            <h3>{item.heading}</h3>
-            <span>{item.label} →</span>
-          </Link>
-        ))}
-      </section>
-    </>
+      <PartnerLinks dossier={dossier} />
+    </Shell>
   );
 }
