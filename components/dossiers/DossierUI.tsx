@@ -149,6 +149,8 @@ export function ChapterNav({
 
 export async function PartnerLinks({ dossier }: { dossier: DossierSummary }) {
   const items = await partnerDossiers(dossier);
+  const hasMatchingView = dossier.availableOn?.includes("meridian") ?? false;
+  const relatedItems = items.filter((item) => item.slug !== dossier.slug);
 
   return (
     <section className={styles.researchBridge} aria-label={`Verbinding met ${partnerName}`}>
@@ -161,13 +163,21 @@ export async function PartnerLinks({ dossier }: { dossier: DossierSummary }) {
         </p>
       </div>
       <div className={styles.bridgeLinks}>
-        {items.length ? items.map((item) => (
+        {hasMatchingView && (
+          <a href={`${partnerUrl}${dossierPath(dossier.slug)}`}>
+            <span>Hetzelfde gedeelde dossier · zelfstandige onderzoeksweergave</span>
+            <strong>{dossier.title}</strong>
+            <b>Open precies dit onderzoek ↗</b>
+          </a>
+        )}
+        {relatedItems.map((item) => (
           <a key={item.slug} href={`${partnerUrl}${dossierPath(item.slug)}`}>
             <span>{item.reason}</span>
             <strong>{item.title}</strong>
-            <b>Open het onderzoek ↗</b>
+            <b>Open een verwant onderzoek ↗</b>
           </a>
-        )) : (
+        ))}
+        {!hasMatchingView && relatedItems.length === 0 && (
           <a href={`${partnerUrl}/dossiers`}>
             <span>Onafhankelijke kennislaag</span>
             <strong>Dossiers bij Meridian</strong>
